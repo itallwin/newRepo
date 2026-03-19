@@ -1,0 +1,1873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RBAC Admin Portal – Enterprise ERP</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f0f2f5;
+  --sidebar-bg: #0f172a;
+  --sidebar-hover: #1e293b;
+  --sidebar-active: #2563eb;
+  --sidebar-text: #94a3b8;
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-light: #eff6ff;
+  --success: #16a34a;
+  --success-light: #f0fdf4;
+  --danger: #dc2626;
+  --danger-light: #fef2f2;
+  --warning: #d97706;
+  --warning-light: #fffbeb;
+  --purple: #9333ea;
+  --purple-light: #fdf4ff;
+  --teal: #0d9488;
+  --teal-light: #f0fdfa;
+  --card: #ffffff;
+  --border: #e2e8f0;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --text-light: #94a3b8;
+  --radius: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --topbar-h: 56px;
+  --sidebar-w: 248px;
+}
+
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+
+/* SIDEBAR */
+.sidebar { width: var(--sidebar-w); background: var(--sidebar-bg); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
+.sidebar-logo { padding: 18px 20px 14px; border-bottom: 1px solid #1e293b; }
+.sidebar-logo .brand { font-size: 15px; font-weight: 700; color: #fff; }
+.sidebar-logo .sub { font-size: 10px; color: var(--sidebar-text); margin-top: 2px; }
+.sidebar-section { padding: 14px 12px 4px; font-size: 9.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #475569; }
+.sidebar-item { display: flex; align-items: center; gap: 9px; padding: 8px 12px; border-radius: 6px; margin: 1px 8px; cursor: pointer; color: var(--sidebar-text); font-size: 13px; font-weight: 500; transition: all 0.12s; }
+.sidebar-item:hover { background: var(--sidebar-hover); color: #cbd5e1; }
+.sidebar-item.active { background: var(--sidebar-active); color: #fff; }
+.sidebar-item .icon { width: 17px; text-align: center; font-size: 14px; flex-shrink: 0; }
+.sidebar-item .badge { margin-left: auto; background: #374151; color: #9ca3af; font-size: 10px; padding: 1px 6px; border-radius: 10px; }
+.sidebar-item.active .badge { background: rgba(255,255,255,0.2); color: #fff; }
+
+/* MAIN */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.topbar { height: var(--topbar-h); background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 16px; flex-shrink: 0; box-shadow: var(--shadow); }
+.topbar-left { flex: 1; }
+.topbar-breadcrumb { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; margin-bottom: 2px; }
+.topbar-breadcrumb .current { color: var(--text); font-weight: 500; }
+.topbar-title { font-size: 15px; font-weight: 600; color: var(--text); }
+.avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; cursor: pointer; }
+.content { flex: 1; overflow-y: auto; padding: 22px 24px; }
+
+/* SCREENS */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* CARDS */
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+.card-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.card-title { font-size: 13.5px; font-weight: 600; color: var(--text); }
+.card-body { padding: 18px; }
+
+/* BUTTONS */
+.btn { display: inline-flex; align-items: center; gap: 5px; padding: 6px 13px; border-radius: 6px; font-size: 12.5px; font-weight: 500; cursor: pointer; border: 1px solid transparent; transition: all 0.12s; white-space: nowrap; }
+.btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-outline { background: #fff; color: var(--text); border-color: var(--border); }
+.btn-outline:hover { background: var(--bg); }
+.btn-success { background: var(--success); color: #fff; }
+.btn-teal { background: var(--teal); color: #fff; }
+.btn-purple { background: var(--purple); color: #fff; }
+.btn-danger-outline { color: var(--danger); border-color: #fecaca; background: #fff2f2; }
+.btn-sm { padding: 3px 9px; font-size: 11.5px; }
+.btn-xs { padding: 2px 7px; font-size: 10.5px; }
+
+/* BADGES */
+.badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; gap: 3px; }
+.badge-success { background: var(--success-light); color: var(--success); }
+.badge-danger { background: var(--danger-light); color: var(--danger); }
+.badge-primary { background: var(--primary-light); color: var(--primary); }
+.badge-warning { background: var(--warning-light); color: var(--warning); }
+.badge-gray { background: #f1f5f9; color: var(--text-muted); }
+.badge-purple { background: var(--purple-light); color: var(--purple); }
+.badge-teal { background: var(--teal-light); color: var(--teal); }
+.badge-orange { background: #fff7ed; color: #c2410c; }
+
+/* ROLE TYPE BADGES */
+.rtype { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+.rtype-user { background: var(--primary-light); color: var(--primary); }
+.rtype-geo { background: #fff7ed; color: #c2410c; }
+.rtype-group { background: var(--teal-light); color: var(--teal); }
+
+/* TABLES */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; padding: 9px 13px; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); background: #f8fafc; border-bottom: 1px solid var(--border); }
+td { padding: 10px 13px; border-bottom: 1px solid var(--border); color: var(--text); font-size: 12.5px; vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #f8fafc; }
+.actions-cell { display: flex; gap: 5px; align-items: center; }
+.checkbox-cell input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--primary); cursor: pointer; }
+
+/* FORMS */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+.form-group.full { grid-column: 1 / -1; }
+label { font-size: 11.5px; font-weight: 600; color: var(--text-muted); }
+input[type=text], input[type=email], select, textarea { width: 100%; padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12.5px; color: var(--text); background: #fff; outline: none; transition: border-color 0.12s; }
+input[type=text]:focus, input[type=email]:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+textarea { resize: vertical; min-height: 68px; }
+.form-row { display: flex; gap: 12px; align-items: flex-end; }
+
+/* SEARCH */
+.search-row { display: flex; gap: 9px; align-items: center; margin-bottom: 14px; }
+.search-wrap { flex: 1; position: relative; }
+.search-wrap input { padding-left: 32px; }
+.search-ico { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-light); font-size: 13px; pointer-events: none; }
+
+/* TOGGLE SWITCH */
+.toggle { position: relative; display: inline-block; width: 36px; height: 20px; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #cbd5e1; border-radius: 20px; transition: 0.2s; }
+.toggle-slider::before { content: ""; position: absolute; height: 14px; width: 14px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.2s; }
+.toggle input:checked + .toggle-slider { background: var(--primary); }
+.toggle input:checked + .toggle-slider::before { transform: translateX(16px); }
+
+/* STATS */
+.stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 20px; }
+.stat-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 18px; box-shadow: var(--shadow); }
+.stat-icon { font-size: 19px; margin-bottom: 7px; }
+.stat-label { font-size: 11px; color: var(--text-muted); font-weight: 600; margin-bottom: 4px; }
+.stat-value { font-size: 26px; font-weight: 700; color: var(--text); line-height: 1; }
+.stat-sub { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+/* ALERTS */
+.alert { padding: 9px 13px; border-radius: 6px; font-size: 12.5px; display: flex; align-items: flex-start; gap: 8px; margin-bottom: 14px; }
+.alert-info { background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; }
+.alert-warning { background: var(--warning-light); border: 1px solid #fcd34d; color: #92400e; }
+.alert-teal { background: var(--teal-light); border: 1px solid #99f6e4; color: #0f766e; }
+
+/* TABS */
+.tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 18px; }
+.tab { padding: 9px 16px; font-size: 12.5px; font-weight: 500; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.12s; }
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+/* PILLS */
+.pill-group { display: flex; gap: 5px; flex-wrap: wrap; }
+.pill { padding: 2px 9px; border-radius: 20px; font-size: 11.5px; font-weight: 500; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; gap: 3px; }
+.pill-teal { background: var(--teal-light); color: var(--teal); }
+.pill-purple { background: var(--purple-light); color: var(--purple); }
+.pill-orange { background: #fff7ed; color: #c2410c; }
+
+/* PERMISSION TREE */
+.perm-module-row { display: flex; align-items: center; gap: 9px; padding: 9px 13px; background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 3px; cursor: pointer; }
+.perm-module-row:hover { background: #f1f5f9; }
+.perm-module-name { font-weight: 600; font-size: 12.5px; color: var(--text); flex: 1; }
+.perm-pages { padding-left: 18px; margin-bottom: 6px; }
+.perm-page-row { display: flex; align-items: center; gap: 9px; padding: 7px 12px; border-left: 2px solid var(--border); margin-bottom: 2px; }
+.perm-page-name { font-size: 12.5px; font-weight: 500; color: var(--text); flex: 1; }
+.perm-actions-row { padding-left: 28px; display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 7px; }
+.action-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border: 1px solid var(--border); border-radius: 4px; font-size: 11px; color: var(--text-muted); background: #fff; cursor: pointer; }
+.action-chip.granted { background: var(--primary-light); border-color: #bfdbfe; color: var(--primary); }
+.action-chip input[type=checkbox] { width: 11px; height: 11px; accent-color: var(--primary); }
+
+/* COPY PANEL */
+.copy-panel { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 14px; }
+.copy-panel-title { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 9px; }
+
+/* PERMISSION MATRIX */
+.matrix-wrap { overflow: auto; max-height: 58vh; }
+.matrix-table { border-collapse: collapse; white-space: nowrap; }
+.matrix-table th, .matrix-table td { border: 1px solid var(--border); padding: 0; }
+.col-header { position: sticky; top: 0; z-index: 10; background: #f8fafc; padding: 7px 10px; font-size: 10.5px; font-weight: 700; text-transform: uppercase; text-align: center; min-width: 85px; }
+.row-module { background: #f1f5f9; font-weight: 700; font-size: 11.5px; color: var(--text); padding: 7px 12px; }
+.row-page { background: #fff; font-size: 11.5px; padding: 5px 12px 5px 22px; }
+.row-action { background: #fafafa; font-size: 10.5px; color: var(--text-muted); padding: 4px 12px 4px 32px; }
+.sticky-col { position: sticky; left: 0; z-index: 5; background: inherit; min-width: 210px; }
+.matrix-check { display: flex; align-items: center; justify-content: center; padding: 5px; }
+.matrix-check input[type=checkbox] { width: 13px; height: 13px; accent-color: var(--primary); cursor: pointer; }
+
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 200; }
+.modal-overlay.open { display: flex; }
+.modal { background: #fff; border-radius: 10px; box-shadow: 0 20px 60px rgba(0,0,0,0.18); width: 560px; max-width: 96vw; max-height: 90vh; overflow-y: auto; }
+.modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.modal-title { font-size: 14.5px; font-weight: 600; }
+.modal-close { cursor: pointer; color: var(--text-muted); font-size: 18px; background: none; border: none; }
+.modal-body { padding: 20px; }
+.modal-footer { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+
+/* DIVIDER */
+.divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+/* ── GEO SCOPE ──────────────────────────────────────────────── */
+.scope-type-bar { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 18px; }
+.scope-type-btn { flex: 1; padding: 11px 14px; text-align: center; cursor: pointer; background: #f8fafc; color: var(--text-muted); border-right: 1px solid var(--border); transition: all 0.12s; }
+.scope-type-btn:last-child { border-right: none; }
+.scope-type-btn.active { background: var(--primary); color: #fff; }
+.scope-icon { font-size: 17px; display: block; margin-bottom: 2px; }
+.scope-label { font-size: 12px; font-weight: 600; display: block; }
+.scope-desc { font-size: 10px; display: block; opacity: 0.65; margin-top: 1px; }
+
+.geo-layout { display: grid; grid-template-columns: 1fr 280px; gap: 14px; }
+.geo-tree { display: flex; flex-direction: column; gap: 8px; }
+.country-card { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--card); }
+.country-header { display: flex; align-items: center; gap: 9px; padding: 10px 13px; background: #f8fafc; cursor: pointer; }
+.country-header:hover { background: #f1f5f9; }
+.country-flag { font-size: 19px; }
+.country-name { font-size: 12.5px; font-weight: 600; color: var(--text); flex: 1; }
+.country-meta { font-size: 11px; color: var(--text-muted); }
+.embassy-list { }
+.embassy-row { display: flex; align-items: center; gap: 9px; padding: 7px 14px 7px 40px; border-bottom: 1px solid #f1f5f9; }
+.embassy-row:last-child { border-bottom: none; }
+.embassy-row:hover { background: #f8fbff; }
+.embassy-row input[type=checkbox] { width: 13px; height: 13px; accent-color: var(--primary); cursor: pointer; flex-shrink: 0; }
+.embassy-name { font-size: 12.5px; color: var(--text); flex: 1; }
+.emb-type { font-size: 10px; padding: 1px 6px; border-radius: 3px; background: #f1f5f9; color: var(--text-muted); }
+.emb-type.hc { background: var(--purple-light); color: var(--purple); }
+.emb-type.cg { background: #fff7ed; color: #c2410c; }
+
+.scope-summary-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; position: sticky; top: 0; }
+.scope-summary-head { padding: 11px 14px; border-bottom: 1px solid var(--border); font-size: 12.5px; font-weight: 600; }
+.scope-summary-body { padding: 12px 14px; max-height: 62vh; overflow-y: auto; }
+.summary-country { margin-bottom: 11px; }
+.sum-cname { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+.sum-emb { font-size: 11.5px; color: var(--text-muted); padding: 1px 0 1px 12px; }
+.sum-emb::before { content: "↳ "; color: #cbd5e1; }
+
+/* ── USER GROUPS ─────────────────────────────────────────────── */
+.group-type-tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+.gtype-public { background: var(--teal-light); color: var(--teal); }
+.gtype-dept { background: var(--purple-light); color: var(--purple); }
+.gtype-external { background: var(--warning-light); color: var(--warning); }
+
+.company-section { margin-bottom: 20px; }
+.company-section-header { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px 8px 0 0; border-bottom: none; }
+.company-section-name { font-size: 13px; font-weight: 700; color: var(--text); flex: 1; }
+.company-section-meta { font-size: 11px; color: var(--text-muted); }
+.company-section-body { border: 1px solid var(--border); border-radius: 0 0 8px 8px; overflow: hidden; }
+
+.access-mode-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.am-individual { background: var(--primary-light); color: var(--primary); }
+.am-group { background: var(--teal-light); color: var(--teal); }
+.am-geo { background: #fff7ed; color: #c2410c; }
+
+/* SUPERADMIN */
+.badge-superadmin { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #92400e; border: 1px solid #fbbf24; font-weight: 700; gap: 4px; }
+.superadmin-row { background: #fffdf5 !important; }
+.superadmin-row td { border-bottom-color: #fde68a !important; }
+.superadmin-role-name { color: #92400e; }
+.btn-delete-disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
+.superadmin-row:hover td { background: #fffdf5 !important; }
+.superadmin-pill { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #92400e; border: 1px solid #fbbf24; font-weight: 600; }
+.superadmin-assign-row { border: 2px solid #fbbf24 !important; background: #fffbeb !important; }
+.superadmin-warning-inline { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 6px; background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; font-size: 11px; margin-top: 4px; }
+.superadmin-access-summary { display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 6px; background: linear-gradient(135deg, #fef3c7, #fde68a); border: 1px solid #fbbf24; color: #92400e; font-size: 12.5px; font-weight: 600; }
+
+/* ROLE TYPE LEGEND */
+.legend { display: flex; gap: 16px; align-items: center; padding: 10px 14px; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 14px; font-size: 12px; color: var(--text-muted); }
+.legend-item { display: flex; align-items: center; gap: 5px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════ SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="brand">⚙ RBAC Admin Portal</div>
+    <div class="sub">Enterprise ERP · Access Management</div>
+  </div>
+
+  <div class="sidebar-section">Overview</div>
+  <div class="sidebar-item active" onclick="show('dashboard')">
+    <span class="icon">🏠</span> Dashboard
+  </div>
+
+  <div class="sidebar-section">Access Structure</div>
+  <div class="sidebar-item" onclick="show('modules')">
+    <span class="icon">📦</span> Modules <span class="badge">12</span>
+  </div>
+  <div class="sidebar-item" onclick="show('pages')">
+    <span class="icon">📄</span> Pages / Sub-pages <span class="badge">47</span>
+  </div>
+  <div class="sidebar-item" onclick="show('actions')">
+    <span class="icon">⚡</span> Actions &amp; Privileges <span class="badge">134</span>
+  </div>
+
+  <div class="sidebar-section">Role-Based Access</div>
+  <div class="sidebar-item" onclick="show('roles')">
+    <span class="icon">🛡</span> Roles <span class="badge">9</span>
+  </div>
+  <div class="sidebar-item" onclick="show('role-detail')">
+    <span class="icon">🔐</span> Role Permissions
+  </div>
+  <div class="sidebar-item" onclick="show('geo-scope')">
+    <span class="icon">🌍</span> Geographic Scope
+  </div>
+  <div class="sidebar-item" onclick="show('matrix')">
+    <span class="icon">🗂</span> Permission Matrix
+  </div>
+
+  <div class="sidebar-section">Group-Based Access</div>
+  <div class="sidebar-item" onclick="show('user-groups')">
+    <span class="icon">🏢</span> User Groups <span class="badge">14</span>
+  </div>
+  <div class="sidebar-item" onclick="show('group-access')">
+    <span class="icon">🔑</span> Group Module Access
+  </div>
+
+  <div class="sidebar-section">Users</div>
+  <div class="sidebar-item" onclick="show('users')">
+    <span class="icon">👥</span> User Master <span class="badge">256</span>
+  </div>
+  <div class="sidebar-item" onclick="show('user-role')">
+    <span class="icon">🔗</span> User–Role Mapping
+  </div>
+
+  <div style="margin-top:auto;padding:14px 16px;border-top:1px solid #1e293b;">
+    <div style="display:flex;align-items:center;gap:9px;">
+      <div class="avatar">SA</div>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:#e2e8f0;">Super Admin</div>
+        <div style="font-size:10.5px;color:#64748b;">admin@erp.com</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════ MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-breadcrumb" id="breadcrumb">
+        <span>RBAC</span> <span>›</span> <span class="current">Dashboard</span>
+      </div>
+      <div class="topbar-title" id="page-title">Dashboard</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+      <button class="btn btn-outline btn-sm">📋 Audit Log</button>
+      <div class="avatar">SA</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+<!-- ══════════════════════════════════ SCREEN: DASHBOARD ══════════ -->
+<div class="screen active" id="screen-dashboard">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">📦</div>
+      <div class="stat-label">Modules</div>
+      <div class="stat-value">12</div>
+      <div class="stat-sub">47 pages · 134 actions</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🛡</div>
+      <div class="stat-label">Roles</div>
+      <div class="stat-value">9</div>
+      <div class="stat-sub">3 types of access</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🏢</div>
+      <div class="stat-label">User Groups</div>
+      <div class="stat-value">14</div>
+      <div class="stat-sub">Across 4 companies</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">👥</div>
+      <div class="stat-label">Active Users</div>
+      <div class="stat-value">248</div>
+      <div class="stat-sub">8 pending assignment</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🌍</div>
+      <div class="stat-label">Geo-Scoped Roles</div>
+      <div class="stat-value">1</div>
+      <div class="stat-sub">6 countries · 18 embassies</div>
+    </div>
+  </div>
+
+  <!-- Access Model Summary -->
+  <div class="alert alert-teal" style="margin-bottom:18px;">
+    🔵 <strong>Three Access Models active:</strong>&nbsp; (1) <strong>Role-Based</strong> — permissions assigned to individual users via roles &nbsp;|&nbsp; (2) <strong>Geo-Scoped</strong> — same role restricted by Country → Embassy hierarchy &nbsp;|&nbsp; (3) <strong>Group-Based</strong> — modules linked to functional teams (Finance Team, Audit Team) under each company, no individual user assignment needed.
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Access Model Breakdown</span>
+        <button class="btn btn-outline btn-sm" onclick="show('roles')">All Roles</button>
+      </div>
+      <div class="card-body" style="padding:14px 18px;">
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;gap:12px;padding:10px;border:1px solid var(--border);border-radius:8px;">
+            <div style="width:38px;height:38px;background:var(--primary-light);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🛡</div>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:600;">Individual Role-Based</div>
+              <div style="font-size:11.5px;color:var(--text-muted);">7 roles · 234 user assignments</div>
+            </div>
+            <span class="rtype rtype-user">User-Linked</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:10px;border:1px solid #fed7aa;border-radius:8px;background:#fffaf5;">
+            <div style="width:38px;height:38px;background:#fff7ed;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🌍</div>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:600;">Geographic Scoped</div>
+              <div style="font-size:11.5px;color:var(--text-muted);">1 role · 6 countries · 18 embassies</div>
+            </div>
+            <span class="rtype rtype-geo">Geo-Scoped</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:10px;border:1px solid #99f6e4;border-radius:8px;background:#f0fdfa;">
+            <div style="width:38px;height:38px;background:var(--teal-light);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🏢</div>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:600;">Group-Based (Team Access)</div>
+              <div style="font-size:11.5px;color:var(--text-muted);">14 user groups · 4 companies · no user mapping</div>
+            </div>
+            <span class="rtype rtype-group">Group-Linked</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">User Groups by Company</span>
+        <button class="btn btn-outline btn-sm" onclick="show('user-groups')">Manage Groups</button>
+      </div>
+      <div class="card-body" style="padding:0;">
+        <table>
+          <thead><tr><th>Company</th><th>Group</th><th>Modules</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>Acme Corp</td><td><span class="group-type-tag gtype-dept">Finance Team</span></td><td>Finance, Reports</td><td><span class="badge badge-success">Active</span></td></tr>
+            <tr><td>Acme Corp</td><td><span class="group-type-tag gtype-dept">Audit Team</span></td><td>All (Read-only)</td><td><span class="badge badge-success">Active</span></td></tr>
+            <tr><td>Beta Ltd</td><td><span class="group-type-tag gtype-dept">Finance Team</span></td><td>Finance</td><td><span class="badge badge-success">Active</span></td></tr>
+            <tr><td>Beta Ltd</td><td><span class="group-type-tag gtype-dept">HR Team</span></td><td>HR &amp; Payroll</td><td><span class="badge badge-success">Active</span></td></tr>
+            <tr><td>Gamma Inc</td><td><span class="group-type-tag gtype-dept">Finance Team</span></td><td>Finance, Procurement</td><td><span class="badge badge-success">Active</span></td></tr>
+            <tr><td>Gamma Inc</td><td><span class="group-type-tag gtype-public">Public Portal</span></td><td>Reports (View)</td><td><span class="badge badge-warning">Draft</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ SCREEN: MODULES ═══════════ -->
+<div class="screen" id="screen-modules">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Modules</span>
+      <button class="btn btn-primary" onclick="openModal('modal-module')">+ Add Module</button>
+    </div>
+    <div class="card-body" style="padding:14px 18px;">
+      <div class="search-row">
+        <div class="search-wrap"><span class="search-ico">🔍</span><input type="text" placeholder="Search modules…" /></div>
+        <select style="width:130px;"><option>All Status</option><option>Active</option><option>Inactive</option></select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th style="width:36px;"><input type="checkbox" /></th><th>Module Name</th><th>Code</th><th>Description</th><th>Pages</th><th>Actions</th><th>Sort</th><th>Status</th><th>Manage</th></tr></thead>
+          <tbody>
+            <tr><td class="checkbox-cell"><input type="checkbox" /></td><td><strong>📊 Finance</strong></td><td><code style="font-size:10.5px;background:#f1f5f9;padding:1px 5px;border-radius:3px;">FIN</code></td><td>Financial accounting &amp; reporting</td><td>9</td><td>27</td><td>1</td><td><span class="badge badge-success">Active</span></td><td class="actions-cell"><button class="btn btn-outline btn-sm" onclick="show('pages')">Pages</button><button class="btn btn-outline btn-sm">✏</button><button class="btn btn-sm btn-danger-outline">🗑</button></td></tr>
+            <tr><td class="checkbox-cell"><input type="checkbox" /></td><td><strong>📦 Inventory</strong></td><td><code style="font-size:10.5px;background:#f1f5f9;padding:1px 5px;border-radius:3px;">INV</code></td><td>Stock and warehouse management</td><td>8</td><td>24</td><td>2</td><td><span class="badge badge-success">Active</span></td><td class="actions-cell"><button class="btn btn-outline btn-sm" onclick="show('pages')">Pages</button><button class="btn btn-outline btn-sm">✏</button><button class="btn btn-sm btn-danger-outline">🗑</button></td></tr>
+            <tr><td class="checkbox-cell"><input type="checkbox" /></td><td><strong>👥 HR &amp; Payroll</strong></td><td><code style="font-size:10.5px;background:#f1f5f9;padding:1px 5px;border-radius:3px;">HRP</code></td><td>Human resources and payroll</td><td>11</td><td>33</td><td>3</td><td><span class="badge badge-success">Active</span></td><td class="actions-cell"><button class="btn btn-outline btn-sm" onclick="show('pages')">Pages</button><button class="btn btn-outline btn-sm">✏</button><button class="btn btn-sm btn-danger-outline">🗑</button></td></tr>
+            <tr><td class="checkbox-cell"><input type="checkbox" /></td><td><strong>🏭 Production</strong></td><td><code style="font-size:10.5px;background:#f1f5f9;padding:1px 5px;border-radius:3px;">PRD</code></td><td>Manufacturing and production planning</td><td>7</td><td>21</td><td>4</td><td><span class="badge badge-success">Active</span></td><td class="actions-cell"><button class="btn btn-outline btn-sm" onclick="show('pages')">Pages</button><button class="btn btn-outline btn-sm">✏</button><button class="btn btn-sm btn-danger-outline">🗑</button></td></tr>
+            <tr><td class="checkbox-cell"><input type="checkbox" /></td><td><strong>🛒 Procurement</strong></td><td><code style="font-size:10.5px;background:#f1f5f9;padding:1px 5px;border-radius:3px;">PRC</code></td><td>Purchase orders and vendors</td><td>6</td><td>18</td><td>5</td><td><span class="badge badge-success">Active</span></td><td class="actions-cell"><button class="btn btn-outline btn-sm" onclick="show('pages')">Pages</button><button class="btn btn-outline btn-sm">✏</button><button class="btn btn-sm btn-danger-outline">🗑</button></td></tr>
+            <tr><td class="checkbox-cell"><input type="checkbox" /></td><td><strong>📈 Sales &amp; CRM</strong></td><td><code style="font-size:10.5px;background:#f1f5f9;padding:1px 5px;border-radius:3px;">CRM</code></td><td>Customer and sales management</td><td>6</td><td>11</td><td>6</td><td><span class="badge badge-danger">Inactive</span></td><td class="actions-cell"><button class="btn btn-outline btn-sm" onclick="show('pages')">Pages</button><button class="btn btn-outline btn-sm">✏</button><button class="btn btn-sm btn-danger-outline">🗑</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ SCREEN: PAGES ═══════════════ -->
+<div class="screen" id="screen-pages">
+  <div class="card" style="margin-bottom:14px;"><div class="card-body" style="padding:12px 18px;">
+    <div class="form-row">
+      <div class="form-group" style="flex:1;"><label>Module</label><select><option>📊 Finance</option><option>📦 Inventory</option><option>👥 HR &amp; Payroll</option></select></div>
+      <div class="form-group" style="flex:1;"><label>Search</label><input type="text" placeholder="Page name or code…" /></div>
+      <div style="padding-top:18px;"><button class="btn btn-primary" onclick="openModal('modal-page')">+ Add Page</button></div>
+    </div>
+  </div></div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">Pages — Finance Module</span></div>
+    <div class="card-body" style="padding:14px 18px;">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th style="width:36px;"><input type="checkbox" /></th><th>Page Name</th><th>Code</th><th>Route</th><th>Actions</th><th>Sort</th><th>Status</th><th>Manage</th></tr></thead>
+          <tbody>
+            <tr><td class="checkbox-cell"><input type="checkbox" /></td><td><strong>General Ledger</strong></td><td><code style="font-size:10.5px;background:#f1f5f9;padding:1px 5px;border-radius:3px;">FIN_GL</code></td><td style="font-size:11.5px;color:var(--text-muted);">/finance/gl</td><td>5</td><td>1</td><td><span class="badge badge-success">Active</span></td><td class="actions-cell"><button class="btn btn-outline btn-sm" onclick="show('actions')">Actions</button><button class="btn btn-outline btn-sm">✏</button><button class="btn btn-sm btn-danger-outline">🗑</button></td></tr>
+            <tr><td class="checkbox-cell"><input type="checkbox" /></td><td><strong>Accounts Payable</strong></td><td><code style="font-size:10.5px;background:#f1f5f9;padding:1px 5px;border-radius:3px;">FIN_AP</code></td><td style="font-size:11.5px;color:var(--text-muted);">/finance/ap</td><td>6</td><td>2</td><td><span class="badge badge-success">Active</span></td><td class="actions-cell"><button class="btn btn-outline btn-sm" onclick="show('actions')">Actions</button><button class="btn btn-outline btn-sm">✏</button><button class="btn btn-sm btn-danger-outline">🗑</button></td></tr>
+            <tr><td class="checkbox-cell"><input type="checkbox" /></td><td><strong>Invoice Management</strong></td><td><code style="font-size:10.5px;background:#f1f5f9;padding:1px 5px;border-radius:3px;">FIN_INV</code></td><td style="font-size:11.5px;color:var(--text-muted);">/finance/invoices</td><td>7</td><td>3</td><td><span class="badge badge-success">Active</span></td><td class="actions-cell"><button class="btn btn-outline btn-sm" onclick="show('actions')">Actions</button><button class="btn btn-outline btn-sm">✏</button><button class="btn btn-sm btn-danger-outline">🗑</button></td></tr>
+            <tr><td class="checkbox-cell"><input type="checkbox" /></td><td><strong>Financial Reports</strong></td><td><code style="font-size:10.5px;background:#f1f5f9;padding:1px 5px;border-radius:3px;">FIN_RPT</code></td><td style="font-size:11.5px;color:var(--text-muted);">/finance/reports</td><td>4</td><td>4</td><td><span class="badge badge-success">Active</span></td><td class="actions-cell"><button class="btn btn-outline btn-sm" onclick="show('actions')">Actions</button><button class="btn btn-outline btn-sm">✏</button><button class="btn btn-sm btn-danger-outline">🗑</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ SCREEN: ACTIONS ══════════════ -->
+<div class="screen" id="screen-actions">
+  <div class="card" style="margin-bottom:14px;"><div class="card-body" style="padding:12px 18px;">
+    <div class="form-row">
+      <div class="form-group" style="flex:1;"><label>Module</label><select><option>📊 Finance</option></select></div>
+      <div class="form-group" style="flex:1;"><label>Page</label><select><option>Invoice Management</option><option>General Ledger</option></select></div>
+      <div class="form-group" style="flex:1;"><label>Type</label><select><option>All Types</option><option>VIEW</option><option>ADD</option><option>EDIT</option><option>DELETE</option><option>APPROVE</option><option>EXPORT</option></select></div>
+      <div style="padding-top:18px;"><button class="btn btn-primary" onclick="openModal('modal-action')">+ Add Action</button></div>
+    </div>
+  </div></div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">Actions — Invoice Management</span><span style="font-size:11.5px;color:var(--text-muted);">Finance › Invoice Management</span></div>
+    <div class="card-body" style="padding:14px 18px;">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th style="width:36px;"><input type="checkbox" /></th><th>Action Name</th><th>Code</th><th>Type</th><th>Page</th><th>Description</th><th>Status</th><th>Edit</th></tr></thead>
+          <tbody>
+            <tr><td class="checkbox-cell"><input type="checkbox" /></td><td>View Invoice</td><td><code style="font-size:10.5px;background:#f1f5f9;padding:1px 5px;border-radius:3px;">FIN_INV_VIEW</code></td><td><span class="badge badge-primary">VIEW</span></td><td>Invoice Mgmt</td><td style="font-size:11.5px;color:var(--text-muted);">List and search invoices</td><td><span class="badge badge-success">Active</span></td><td><button class="btn btn-outline btn-sm">✏</button></td></tr>
+            <tr><td class="checkbox-cell"><input type="checkbox" /></td><td>Create Invoice</td><td><code style="font-size:10.5px;background:#f1f5f9;padding:1px 5px;border-radius:3px;">FIN_INV_ADD</code></td><td><span class="badge badge-success">ADD</span></td><td>Invoice Mgmt</td><td style="font-size:11.5px;color:var(--text-muted);">Create new invoices</td><td><span class="badge badge-success">Active</span></td><td><button class="btn btn-outline btn-sm">✏</button></td></tr>
+            <tr><td class="checkbox-cell"><input type="checkbox" /></td><td>Edit Invoice</td><td><code style="font-size:10.5px;background:#f1f5f9;padding:1px 5px;border-radius:3px;">FIN_INV_EDIT</code></td><td><span class="badge badge-warning">EDIT</span></td><td>Invoice Mgmt</td><td style="font-size:11.5px;color:var(--text-muted);">Modify existing invoices</td><td><span class="badge badge-success">Active</span></td><td><button class="btn btn-outline btn-sm">✏</button></td></tr>
+            <tr><td class="checkbox-cell"><input type="checkbox" /></td><td>Delete Invoice</td><td><code style="font-size:10.5px;background:#f1f5f9;padding:1px 5px;border-radius:3px;">FIN_INV_DEL</code></td><td><span class="badge badge-danger">DELETE</span></td><td>Invoice Mgmt</td><td style="font-size:11.5px;color:var(--text-muted);">Remove invoice records</td><td><span class="badge badge-success">Active</span></td><td><button class="btn btn-outline btn-sm">✏</button></td></tr>
+            <tr><td class="checkbox-cell"><input type="checkbox" /></td><td>Approve Invoice</td><td><code style="font-size:10.5px;background:#f1f5f9;padding:1px 5px;border-radius:3px;">FIN_INV_APPR</code></td><td><span class="badge badge-purple">APPROVE</span></td><td>Invoice Mgmt</td><td style="font-size:11.5px;color:var(--text-muted);">Approve for payment</td><td><span class="badge badge-success">Active</span></td><td><button class="btn btn-outline btn-sm">✏</button></td></tr>
+            <tr><td class="checkbox-cell"><input type="checkbox" /></td><td>Export Invoice</td><td><code style="font-size:10.5px;background:#f1f5f9;padding:1px 5px;border-radius:3px;">FIN_INV_EXP</code></td><td><span class="badge badge-gray">EXPORT</span></td><td>Invoice Mgmt</td><td style="font-size:11.5px;color:var(--text-muted);">Export to PDF / Excel</td><td><span class="badge badge-success">Active</span></td><td><button class="btn btn-outline btn-sm">✏</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ SCREEN: ROLES ═══════════════ -->
+<div class="screen" id="screen-roles">
+  <div class="legend">
+    <strong>Access Model:</strong>
+    <div class="legend-item"><span class="rtype rtype-user">User-Linked</span> Roles assigned to specific users</div>
+    <div class="legend-item"><span class="rtype rtype-geo">Geo-Scoped</span> Restricted to Country → Embassy</div>
+    <div class="legend-item"><span class="rtype rtype-group">Group-Linked</span> Assigned to teams under a company, not individual users</div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">All Roles</span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline btn-sm">📥 Import</button>
+        <button class="btn btn-primary" onclick="openModal('modal-role')">+ New Role</button>
+      </div>
+    </div>
+    <div class="card-body" style="padding:14px 18px;">
+      <div class="search-row">
+        <div class="search-wrap"><span class="search-ico">🔍</span><input type="text" placeholder="Search roles…" /></div>
+        <select style="width:160px;"><option>All Access Models</option><option>User-Linked</option><option>Geo-Scoped</option><option>Group-Linked</option></select>
+        <select style="width:120px;"><option>All Status</option><option>Active</option><option>Inactive</option></select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th style="width:36px;"><input type="checkbox" /></th>
+            <th>Role Name</th><th>Code</th><th>Description</th>
+            <th>Access Model</th><th>Scope</th>
+            <th>Users / Groups</th><th>Permissions</th><th>Status</th><th>Actions</th>
+          </tr></thead>
+          <tbody>
+            <!-- SUPERADMIN ROLE (SYSTEM-PROTECTED) -->
+            <tr class="superadmin-row">
+              <td class="checkbox-cell"><input type="checkbox" /></td>
+              <td><strong class="superadmin-role-name">👑 Super Administrator</strong> <span class="badge badge-superadmin">👑 Superadmin</span></td>
+              <td><code style="font-size:10px;background:#fef3c7;padding:1px 5px;border-radius:3px;color:#92400e;font-weight:600;">SUPER_ADMIN</code></td>
+              <td>Unrestricted access to all modules</td>
+              <td><span class="rtype rtype-user">User-Linked</span></td>
+              <td><span class="badge badge-gray">Global</span></td>
+              <td>12 users</td><td>134 / 134</td><td><span class="badge badge-success">Active</span></td>
+              <td class="actions-cell">
+                <button class="btn btn-primary btn-sm" onclick="show('role-detail')">🔐 Perms</button>
+                <button class="btn btn-outline btn-sm">✏</button>
+                <button class="btn btn-sm btn-danger-outline btn-delete-disabled" disabled aria-disabled="true" title="System-protected role — cannot be deleted">🗑</button>
+              </td>
+            </tr>
+            <tr>
+              <td class="checkbox-cell"><input type="checkbox" /></td>
+              <td><strong>📊 Finance Manager</strong></td>
+              <td><code style="font-size:10px;background:#f1f5f9;padding:1px 5px;border-radius:3px;">FIN_MGR</code></td>
+              <td>Full access to Finance and Reports</td>
+              <td><span class="rtype rtype-user">User-Linked</span></td>
+              <td><span class="badge badge-gray">Global</span></td>
+              <td>34 users</td><td>42 / 134</td><td><span class="badge badge-success">Active</span></td>
+              <td class="actions-cell">
+                <button class="btn btn-primary btn-sm" onclick="show('role-detail')">🔐 Perms</button>
+                <button class="btn btn-outline btn-sm">✏</button>
+                <button class="btn btn-sm btn-danger-outline">🗑</button>
+              </td>
+            </tr>
+            <tr>
+              <td class="checkbox-cell"><input type="checkbox" /></td>
+              <td><strong>📦 Inventory Controller</strong></td>
+              <td><code style="font-size:10px;background:#f1f5f9;padding:1px 5px;border-radius:3px;">INV_CTRL</code></td>
+              <td>Manages inventory, stock, warehouses</td>
+              <td><span class="rtype rtype-user">User-Linked</span></td>
+              <td><span class="badge badge-gray">Global</span></td>
+              <td>18 users</td><td>28 / 134</td><td><span class="badge badge-success">Active</span></td>
+              <td class="actions-cell">
+                <button class="btn btn-primary btn-sm" onclick="show('role-detail')">🔐 Perms</button>
+                <button class="btn btn-outline btn-sm">✏</button>
+                <button class="btn btn-sm btn-danger-outline">🗑</button>
+              </td>
+            </tr>
+            <tr>
+              <td class="checkbox-cell"><input type="checkbox" /></td>
+              <td><strong>👁 Auditor (Read-only)</strong></td>
+              <td><code style="font-size:10px;background:#f1f5f9;padding:1px 5px;border-radius:3px;">AUDITOR</code></td>
+              <td>View-only across all modules</td>
+              <td><span class="rtype rtype-user">User-Linked</span></td>
+              <td><span class="badge badge-gray">Global</span></td>
+              <td>6 users</td><td>47 / 134</td><td><span class="badge badge-success">Active</span></td>
+              <td class="actions-cell">
+                <button class="btn btn-primary btn-sm" onclick="show('role-detail')">🔐 Perms</button>
+                <button class="btn btn-outline btn-sm">✏</button>
+                <button class="btn btn-sm btn-danger-outline">🗑</button>
+              </td>
+            </tr>
+            <tr>
+              <td class="checkbox-cell"><input type="checkbox" /></td>
+              <td><strong>🏭 Plant Operator</strong></td>
+              <td><code style="font-size:10px;background:#f1f5f9;padding:1px 5px;border-radius:3px;">PLANT_OPR</code></td>
+              <td>Production entry and inventory updates</td>
+              <td><span class="rtype rtype-user">User-Linked</span></td>
+              <td><span class="badge badge-gray">Global</span></td>
+              <td>56 users</td><td>19 / 134</td><td><span class="badge badge-success">Active</span></td>
+              <td class="actions-cell">
+                <button class="btn btn-primary btn-sm" onclick="show('role-detail')">🔐 Perms</button>
+                <button class="btn btn-outline btn-sm">✏</button>
+                <button class="btn btn-sm btn-danger-outline">🗑</button>
+              </td>
+            </tr>
+            <!-- GEO-SCOPED ROLE -->
+            <tr style="background:#fffdf7;">
+              <td class="checkbox-cell"><input type="checkbox" /></td>
+              <td><strong>🌍 Embassy Coordinator</strong></td>
+              <td><code style="font-size:10px;background:#fff7ed;padding:1px 5px;border-radius:3px;color:#c2410c;">EMB_COORD</code></td>
+              <td>Operations restricted to assigned embassies</td>
+              <td><span class="rtype rtype-geo">Geo-Scoped</span></td>
+              <td>
+                <span class="badge badge-orange">6 Countries</span>
+                <span class="badge badge-orange" style="margin-left:3px;">18 Embassies</span>
+              </td>
+              <td>22 users</td><td>31 / 134</td><td><span class="badge badge-success">Active</span></td>
+              <td class="actions-cell">
+                <button class="btn btn-primary btn-sm" onclick="show('role-detail')">🔐 Perms</button>
+                <button class="btn btn-outline btn-sm" onclick="show('geo-scope')" style="color:#c2410c;border-color:#fed7aa;">🌍 Scope</button>
+                <button class="btn btn-outline btn-sm">✏</button>
+              </td>
+            </tr>
+            <!-- GROUP-LINKED ROLES -->
+            <tr style="background:#f0fdfa;">
+              <td class="checkbox-cell"><input type="checkbox" /></td>
+              <td><strong>💼 Finance Team Access</strong></td>
+              <td><code style="font-size:10px;background:var(--teal-light);padding:1px 5px;border-radius:3px;color:var(--teal);">GRP_FINANCE</code></td>
+              <td>Finance modules for team groups per company</td>
+              <td><span class="rtype rtype-group">Group-Linked</span></td>
+              <td><span class="badge badge-teal">Per Company</span></td>
+              <td>4 groups</td><td>42 / 134</td><td><span class="badge badge-success">Active</span></td>
+              <td class="actions-cell">
+                <button class="btn btn-teal btn-sm" onclick="show('group-access')">🏢 Groups</button>
+                <button class="btn btn-primary btn-sm" onclick="show('role-detail')">🔐 Perms</button>
+                <button class="btn btn-outline btn-sm">✏</button>
+              </td>
+            </tr>
+            <tr style="background:#f0fdfa;">
+              <td class="checkbox-cell"><input type="checkbox" /></td>
+              <td><strong>🔍 Audit Team Access</strong></td>
+              <td><code style="font-size:10px;background:var(--teal-light);padding:1px 5px;border-radius:3px;color:var(--teal);">GRP_AUDIT</code></td>
+              <td>Read-only across all modules, per company</td>
+              <td><span class="rtype rtype-group">Group-Linked</span></td>
+              <td><span class="badge badge-teal">Per Company</span></td>
+              <td>3 groups</td><td>47 / 134</td><td><span class="badge badge-success">Active</span></td>
+              <td class="actions-cell">
+                <button class="btn btn-teal btn-sm" onclick="show('group-access')">🏢 Groups</button>
+                <button class="btn btn-primary btn-sm" onclick="show('role-detail')">🔐 Perms</button>
+                <button class="btn btn-outline btn-sm">✏</button>
+              </td>
+            </tr>
+            <tr style="background:#f0fdfa;">
+              <td class="checkbox-cell"><input type="checkbox" /></td>
+              <td><strong>📋 HR Team Access</strong></td>
+              <td><code style="font-size:10px;background:var(--teal-light);padding:1px 5px;border-radius:3px;color:var(--teal);">GRP_HR</code></td>
+              <td>HR &amp; Payroll modules for HR team groups</td>
+              <td><span class="rtype rtype-group">Group-Linked</span></td>
+              <td><span class="badge badge-teal">Per Company</span></td>
+              <td>3 groups</td><td>33 / 134</td><td><span class="badge badge-success">Active</span></td>
+              <td class="actions-cell">
+                <button class="btn btn-teal btn-sm" onclick="show('group-access')">🏢 Groups</button>
+                <button class="btn btn-primary btn-sm" onclick="show('role-detail')">🔐 Perms</button>
+                <button class="btn btn-outline btn-sm">✏</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ SCREEN: ROLE PERMISSIONS ══════ -->
+<div class="screen" id="screen-role-detail">
+  <div class="card" style="margin-bottom:14px;">
+    <div class="card-body" style="padding:14px 18px;">
+      <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
+        <div style="flex:1;">
+          <div style="font-size:17px;font-weight:700;">📊 Finance Manager</div>
+          <div style="font-size:12.5px;color:var(--text-muted);margin-top:3px;">
+            Code: <code>FIN_MGR</code> &nbsp;·&nbsp; 34 users assigned &nbsp;·&nbsp; 42 of 134 permissions granted
+            &nbsp;·&nbsp; <span class="rtype rtype-user">User-Linked</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:7px;">
+          <button class="btn btn-outline" onclick="openModal('modal-copy')">📋 Copy From Role</button>
+          <button class="btn btn-outline">↩ Reset</button>
+          <button class="btn btn-success">💾 Save Permissions</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="copy-panel">
+    <div class="copy-panel-title">⚡ Quick Grant</div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <span style="font-size:12.5px;color:var(--text-muted);">Select all for:</span>
+      <button class="btn btn-outline btn-sm">All Modules</button>
+      <button class="btn btn-outline btn-sm">📊 Finance</button>
+      <button class="btn btn-outline btn-sm">All VIEW actions</button>
+      <button class="btn btn-outline btn-sm">All APPROVE</button>
+      <span style="margin-left:auto;font-size:12.5px;color:var(--text-muted);">Copy from:</span>
+      <button class="btn btn-outline btn-sm" onclick="openModal('modal-copy')">🔑 Super Admin</button>
+      <button class="btn btn-outline btn-sm" onclick="openModal('modal-copy')">👁 Auditor</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active">All Modules</div>
+    <div class="tab">📊 Finance</div>
+    <div class="tab">📦 Inventory</div>
+    <div class="tab">👥 HR &amp; Payroll</div>
+    <div class="tab">🏭 Production</div>
+  </div>
+
+  <!-- Finance module open -->
+  <div class="perm-module-row">
+    <input type="checkbox" checked style="width:14px;height:14px;accent-color:var(--primary);" />
+    <span style="font-size:15px;">📊</span>
+    <span class="perm-module-name">Finance</span>
+    <span style="font-size:11px;color:var(--text-muted);">9 pages · 27 actions</span>
+    <span class="badge badge-primary" style="margin-left:6px;">42 granted</span>
+    <span style="font-size:11.5px;color:var(--primary);cursor:pointer;margin-left:8px;">▾</span>
+  </div>
+  <div class="perm-pages">
+    <div class="perm-page-row">
+      <input type="checkbox" checked style="width:13px;height:13px;accent-color:var(--primary);" />
+      <span class="perm-page-name">General Ledger</span>
+      <span style="font-size:11px;color:var(--text-muted);">5 actions</span>
+      <button class="btn btn-xs btn-outline" style="margin-left:6px;color:var(--primary);border-color:#bfdbfe;">All</button>
+      <button class="btn btn-xs btn-outline" style="margin-left:3px;">None</button>
+    </div>
+    <div class="perm-actions-row">
+      <label class="action-chip granted"><input type="checkbox" checked /> VIEW</label>
+      <label class="action-chip granted"><input type="checkbox" checked /> ADD</label>
+      <label class="action-chip granted"><input type="checkbox" checked /> EDIT</label>
+      <label class="action-chip"><input type="checkbox" /> DELETE</label>
+      <label class="action-chip granted"><input type="checkbox" checked /> EXPORT</label>
+    </div>
+    <div class="perm-page-row">
+      <input type="checkbox" checked style="width:13px;height:13px;accent-color:var(--primary);" />
+      <span class="perm-page-name">Invoice Management</span>
+      <span style="font-size:11px;color:var(--text-muted);">7 actions</span>
+      <button class="btn btn-xs btn-outline" style="margin-left:6px;color:var(--primary);border-color:#bfdbfe;">All</button>
+      <button class="btn btn-xs btn-outline" style="margin-left:3px;">None</button>
+    </div>
+    <div class="perm-actions-row">
+      <label class="action-chip granted"><input type="checkbox" checked /> VIEW</label>
+      <label class="action-chip granted"><input type="checkbox" checked /> ADD</label>
+      <label class="action-chip granted"><input type="checkbox" checked /> EDIT</label>
+      <label class="action-chip"><input type="checkbox" /> DELETE</label>
+      <label class="action-chip granted"><input type="checkbox" checked /> APPROVE</label>
+      <label class="action-chip granted"><input type="checkbox" checked /> EXPORT</label>
+      <label class="action-chip"><input type="checkbox" /> PRINT</label>
+    </div>
+  </div>
+  <div class="perm-module-row">
+    <input type="checkbox" style="width:14px;height:14px;accent-color:var(--primary);" />
+    <span style="font-size:15px;">📦</span><span class="perm-module-name">Inventory</span>
+    <span style="font-size:11px;color:var(--text-muted);">8 pages · 24 actions</span>
+    <span class="badge badge-gray" style="margin-left:6px;">0 granted</span>
+    <span style="font-size:11.5px;color:var(--text-muted);cursor:pointer;margin-left:8px;">▸</span>
+  </div>
+  <div class="perm-module-row" style="margin-top:4px;">
+    <input type="checkbox" style="width:14px;height:14px;accent-color:var(--primary);" />
+    <span style="font-size:15px;">👥</span><span class="perm-module-name">HR &amp; Payroll</span>
+    <span style="font-size:11px;color:var(--text-muted);">11 pages · 33 actions</span>
+    <span class="badge badge-gray" style="margin-left:6px;">0 granted</span>
+    <span style="font-size:11.5px;color:var(--text-muted);cursor:pointer;margin-left:8px;">▸</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ SCREEN: GEO SCOPE ═══════════ -->
+<div class="screen" id="screen-geo-scope">
+  <div class="card" style="margin-bottom:14px;">
+    <div class="card-body" style="padding:14px 18px;">
+      <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
+        <div style="flex:1;">
+          <div style="font-size:16px;font-weight:700;">🌍 Embassy Coordinator — Geographic Scope</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:3px;">Code: <code>EMB_COORD</code> &nbsp;·&nbsp; Restricts data access to selected countries and embassies only</div>
+        </div>
+        <div style="display:flex;gap:7px;">
+          <button class="btn btn-outline btn-sm">↩ Reset to Global</button>
+          <button class="btn btn-success">💾 Save Scope</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scope Type Selector -->
+  <div class="scope-type-bar">
+    <div class="scope-type-btn" onclick="setScopeType(this,'global')">
+      <span class="scope-icon">🌐</span>
+      <span class="scope-label">Global</span>
+      <span class="scope-desc">No restriction — all countries</span>
+    </div>
+    <div class="scope-type-btn" onclick="setScopeType(this,'country')">
+      <span class="scope-icon">🗺</span>
+      <span class="scope-label">Country Level</span>
+      <span class="scope-desc">Access to selected countries only</span>
+    </div>
+    <div class="scope-type-btn active" onclick="setScopeType(this,'embassy')">
+      <span class="scope-icon">🏛</span>
+      <span class="scope-label">Embassy Level</span>
+      <span class="scope-desc">Select specific embassies per country</span>
+    </div>
+  </div>
+
+  <div class="alert alert-warning">
+    ⚠ <strong>Embassy Level scope is active.</strong> Users with this role can only view and manage data for the embassies checked below. Unselected embassies are completely hidden from them.
+  </div>
+
+  <div class="geo-layout">
+    <!-- Left: Country → Embassy tree -->
+    <div class="geo-tree">
+      <!-- INDIA -->
+      <div class="country-card">
+        <div class="country-header">
+          <input type="checkbox" checked style="width:14px;height:14px;accent-color:var(--primary);" />
+          <span class="country-flag">🇮🇳</span>
+          <span class="country-name">India</span>
+          <span class="country-meta">4 embassies</span>
+          <div style="display:flex;gap:5px;margin-left:8px;">
+            <button class="country-all-btn">All</button>
+            <button class="country-none-btn">None</button>
+          </div>
+          <span style="font-size:11px;color:var(--text-muted);margin-left:6px;">▾</span>
+        </div>
+        <div class="embassy-list">
+          <div class="embassy-row"><input type="checkbox" checked /><span class="embassy-name">High Commission of India, London</span><span class="emb-type hc">High Commission</span></div>
+          <div class="embassy-row"><input type="checkbox" checked /><span class="embassy-name">Consulate General, New York</span><span class="emb-type cg">Consulate</span></div>
+          <div class="embassy-row"><input type="checkbox" checked /><span class="embassy-name">Embassy of India, Washington DC</span><span class="emb-type">Embassy</span></div>
+          <div class="embassy-row"><input type="checkbox" /><span class="embassy-name">Consulate General, Toronto</span><span class="emb-type cg">Consulate</span></div>
+        </div>
+      </div>
+
+      <!-- USA -->
+      <div class="country-card">
+        <div class="country-header">
+          <input type="checkbox" checked style="width:14px;height:14px;accent-color:var(--primary);" />
+          <span class="country-flag">🇺🇸</span>
+          <span class="country-name">United States</span>
+          <span class="country-meta">3 embassies</span>
+          <div style="display:flex;gap:5px;margin-left:8px;">
+            <button class="country-all-btn">All</button>
+            <button class="country-none-btn">None</button>
+          </div>
+          <span style="font-size:11px;color:var(--text-muted);margin-left:6px;">▾</span>
+        </div>
+        <div class="embassy-list">
+          <div class="embassy-row"><input type="checkbox" checked /><span class="embassy-name">US Embassy, New Delhi</span><span class="emb-type">Embassy</span></div>
+          <div class="embassy-row"><input type="checkbox" checked /><span class="embassy-name">US Consulate, Mumbai</span><span class="emb-type cg">Consulate</span></div>
+          <div class="embassy-row"><input type="checkbox" /><span class="embassy-name">US Consulate, Chennai</span><span class="emb-type cg">Consulate</span></div>
+        </div>
+      </div>
+
+      <!-- UK -->
+      <div class="country-card">
+        <div class="country-header">
+          <input type="checkbox" checked style="width:14px;height:14px;accent-color:var(--primary);" />
+          <span class="country-flag">🇬🇧</span>
+          <span class="country-name">United Kingdom</span>
+          <span class="country-meta">2 embassies</span>
+          <div style="display:flex;gap:5px;margin-left:8px;">
+            <button class="country-all-btn">All</button>
+            <button class="country-none-btn">None</button>
+          </div>
+          <span style="font-size:11px;color:var(--text-muted);margin-left:6px;">▾</span>
+        </div>
+        <div class="embassy-list">
+          <div class="embassy-row"><input type="checkbox" checked /><span class="embassy-name">British High Commission, New Delhi</span><span class="emb-type hc">High Commission</span></div>
+          <div class="embassy-row"><input type="checkbox" /><span class="embassy-name">British Consulate, Mumbai</span><span class="emb-type cg">Consulate</span></div>
+        </div>
+      </div>
+
+      <!-- UAE (collapsed) -->
+      <div class="country-card">
+        <div class="country-header">
+          <input type="checkbox" style="width:14px;height:14px;accent-color:var(--primary);" />
+          <span class="country-flag">🇦🇪</span>
+          <span class="country-name">United Arab Emirates</span>
+          <span class="country-meta">3 embassies · none selected</span>
+          <div style="display:flex;gap:5px;margin-left:8px;">
+            <button class="country-all-btn">All</button>
+            <button class="country-none-btn">None</button>
+          </div>
+          <span style="font-size:11px;color:var(--text-muted);margin-left:6px;">▸ Expand</span>
+        </div>
+      </div>
+
+      <!-- Germany (collapsed) -->
+      <div class="country-card">
+        <div class="country-header">
+          <input type="checkbox" style="width:14px;height:14px;accent-color:var(--primary);" />
+          <span class="country-flag">🇩🇪</span>
+          <span class="country-name">Germany</span>
+          <span class="country-meta">2 embassies · none selected</span>
+          <div style="display:flex;gap:5px;margin-left:8px;">
+            <button class="country-all-btn">All</button>
+            <button class="country-none-btn">None</button>
+          </div>
+          <span style="font-size:11px;color:var(--text-muted);margin-left:6px;">▸ Expand</span>
+        </div>
+      </div>
+
+      <!-- Australia (collapsed) -->
+      <div class="country-card">
+        <div class="country-header">
+          <input type="checkbox" style="width:14px;height:14px;accent-color:var(--primary);" />
+          <span class="country-flag">🇦🇺</span>
+          <span class="country-name">Australia</span>
+          <span class="country-meta">4 embassies · none selected</span>
+          <div style="display:flex;gap:5px;margin-left:8px;">
+            <button class="country-all-btn">All</button>
+            <button class="country-none-btn">None</button>
+          </div>
+          <span style="font-size:11px;color:var(--text-muted);margin-left:6px;">▸ Expand</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Summary -->
+    <div>
+      <div class="scope-summary-card">
+        <div class="scope-summary-head">📍 Current Scope — 8 of 18 embassies</div>
+        <div class="scope-summary-body">
+          <div class="summary-country">
+            <div class="sum-cname">🇮🇳 India (3 of 4)</div>
+            <div class="sum-emb">High Commission, London</div>
+            <div class="sum-emb">Consulate General, New York</div>
+            <div class="sum-emb">Embassy, Washington DC</div>
+          </div>
+          <div class="summary-country">
+            <div class="sum-cname">🇺🇸 United States (2 of 3)</div>
+            <div class="sum-emb">US Embassy, New Delhi</div>
+            <div class="sum-emb">US Consulate, Mumbai</div>
+          </div>
+          <div class="summary-country">
+            <div class="sum-cname">🇬🇧 United Kingdom (1 of 2)</div>
+            <div class="sum-emb">British High Commission, New Delhi</div>
+          </div>
+          <div style="color:var(--text-muted);font-size:11.5px;padding:6px 0;border-top:1px solid var(--border);margin-top:8px;">
+            UAE, Germany, Australia — no embassies selected
+          </div>
+        </div>
+        <div style="padding:10px 14px;border-top:1px solid var(--border);">
+          <button class="btn btn-success" style="width:100%;">💾 Save Scope</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ SCREEN: MATRIX ══════════════ -->
+<div class="screen" id="screen-matrix">
+  <div class="alert alert-warning">⚠ This matrix shows permissions across all User-Linked and Geo-Scoped roles. Group-Linked roles appear in the Group Module Access section.</div>
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Permission Matrix — Role × Module × Action</span>
+      <div style="display:flex;gap:7px;">
+        <button class="btn btn-outline btn-sm">📥 Export</button>
+        <button class="btn btn-success btn-sm">💾 Save All</button>
+      </div>
+    </div>
+    <div class="card-body" style="padding:0;">
+      <div style="padding:10px 14px;background:#f8fafc;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;">
+        <select style="width:150px;"><option>All Modules</option><option>Finance</option><option>Inventory</option></select>
+        <input type="text" placeholder="Filter pages…" style="width:190px;" />
+      </div>
+      <div class="matrix-wrap">
+        <table class="matrix-table">
+          <thead>
+            <tr>
+              <th class="sticky-col col-header" style="text-align:left;">Module / Page / Action</th>
+              <th class="col-header">🔑<br/>Super Admin</th>
+              <th class="col-header">📊<br/>Finance Mgr</th>
+              <th class="col-header">📦<br/>Inv. Ctrl</th>
+              <th class="col-header">👁<br/>Auditor</th>
+              <th class="col-header">🏭<br/>Plant Opr</th>
+              <th class="col-header" style="background:#fff7ed;color:#92400e;">🌍<br/>Embassy Coord</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="sticky-col row-module">📊 Finance</td><td colspan="6"></td></tr>
+            <tr><td class="sticky-col row-page">↳ General Ledger</td><td colspan="6" style="background:#fafafa;"></td></tr>
+            <tr><td class="sticky-col row-action">↳↳ VIEW</td>
+              <td><div class="matrix-check"><input type="checkbox" checked /></div></td>
+              <td><div class="matrix-check"><input type="checkbox" checked /></div></td>
+              <td><div class="matrix-check"><input type="checkbox" /></div></td>
+              <td><div class="matrix-check"><input type="checkbox" checked /></div></td>
+              <td><div class="matrix-check"><input type="checkbox" /></div></td>
+              <td style="background:#fffdf5;"><div class="matrix-check"><input type="checkbox" checked /></div></td>
+            </tr>
+            <tr><td class="sticky-col row-action">↳↳ APPROVE</td>
+              <td><div class="matrix-check"><input type="checkbox" checked /></div></td>
+              <td><div class="matrix-check"><input type="checkbox" checked /></div></td>
+              <td><div class="matrix-check"><input type="checkbox" /></div></td>
+              <td><div class="matrix-check"><input type="checkbox" /></div></td>
+              <td><div class="matrix-check"><input type="checkbox" /></div></td>
+              <td style="background:#fffdf5;"><div class="matrix-check"><input type="checkbox" checked /></div></td>
+            </tr>
+            <tr><td class="sticky-col row-module">📦 Inventory</td><td colspan="6"></td></tr>
+            <tr><td class="sticky-col row-page">↳ Stock Register</td><td colspan="6" style="background:#fafafa;"></td></tr>
+            <tr><td class="sticky-col row-action">↳↳ VIEW</td>
+              <td><div class="matrix-check"><input type="checkbox" checked /></div></td>
+              <td><div class="matrix-check"><input type="checkbox" /></div></td>
+              <td><div class="matrix-check"><input type="checkbox" checked /></div></td>
+              <td><div class="matrix-check"><input type="checkbox" checked /></div></td>
+              <td><div class="matrix-check"><input type="checkbox" checked /></div></td>
+              <td style="background:#fffdf5;"><div class="matrix-check"><input type="checkbox" /></div></td>
+            </tr>
+            <tr><td class="sticky-col row-action">↳↳ ADD</td>
+              <td><div class="matrix-check"><input type="checkbox" checked /></div></td>
+              <td><div class="matrix-check"><input type="checkbox" /></div></td>
+              <td><div class="matrix-check"><input type="checkbox" checked /></div></td>
+              <td><div class="matrix-check"><input type="checkbox" /></div></td>
+              <td><div class="matrix-check"><input type="checkbox" checked /></div></td>
+              <td style="background:#fffdf5;"><div class="matrix-check"><input type="checkbox" /></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ SCREEN: USER GROUPS ══════════ -->
+<div class="screen" id="screen-user-groups">
+  <div class="alert alert-teal">
+    🏢 <strong>Group-Based Access</strong> — User Groups are functional teams (Finance Team, Audit Team, HR Team) defined under each Company. Modules and permissions are assigned to the <em>group</em>, not to individual users. Any member of the group in your org chart/directory inherits the access automatically.
+  </div>
+
+  <div class="card" style="margin-bottom:14px;">
+    <div class="card-header">
+      <span class="card-title">User Groups</span>
+      <div style="display:flex;gap:7px;">
+        <button class="btn btn-outline btn-sm">📥 Import Groups</button>
+        <button class="btn btn-teal" onclick="openModal('modal-group')">+ New Group</button>
+      </div>
+    </div>
+    <div class="card-body" style="padding:14px 18px;">
+      <div class="search-row">
+        <div class="search-wrap"><span class="search-ico">🔍</span><input type="text" placeholder="Search groups…" /></div>
+        <select style="width:160px;"><option>All Companies</option><option>Acme Corp</option><option>Beta Ltd</option><option>Gamma Inc</option><option>Delta Co</option></select>
+        <select style="width:140px;"><option>All Group Types</option><option>Department Team</option><option>Public Group</option><option>External</option></select>
+      </div>
+
+      <!-- ACME CORP -->
+      <div class="company-section">
+        <div class="company-section-header">
+          <span style="font-size:16px;">🏢</span>
+          <span class="company-section-name">Acme Corp</span>
+          <span class="company-section-meta">4 groups &nbsp;·&nbsp; Finance, HR, Audit, Procurement</span>
+          <button class="btn btn-outline btn-sm">+ Add Group</button>
+        </div>
+        <div class="company-section-body">
+          <table>
+            <thead><tr><th>Group Name</th><th>Type</th><th>Description</th><th>Modules Linked</th><th>Est. Members</th><th>Role Template</th><th>Status</th><th>Manage</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong>Finance Team</strong></td>
+                <td><span class="group-type-tag gtype-dept">Department</span></td>
+                <td style="font-size:11.5px;color:var(--text-muted);">Finance dept staff of Acme Corp</td>
+                <td><div class="pill-group"><span class="pill">Finance</span><span class="pill">Reports</span></div></td>
+                <td>~45</td>
+                <td><span class="badge badge-teal">GRP_FINANCE</span></td>
+                <td><span class="badge badge-success">Active</span></td>
+                <td class="actions-cell">
+                  <button class="btn btn-teal btn-sm" onclick="show('group-access')">🔑 Modules</button>
+                  <button class="btn btn-outline btn-sm">✏</button>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Audit Team</strong></td>
+                <td><span class="group-type-tag gtype-dept">Department</span></td>
+                <td style="font-size:11.5px;color:var(--text-muted);">Internal audit team of Acme Corp</td>
+                <td><div class="pill-group"><span class="pill pill-teal">All (View)</span></div></td>
+                <td>~12</td>
+                <td><span class="badge badge-teal">GRP_AUDIT</span></td>
+                <td><span class="badge badge-success">Active</span></td>
+                <td class="actions-cell">
+                  <button class="btn btn-teal btn-sm" onclick="show('group-access')">🔑 Modules</button>
+                  <button class="btn btn-outline btn-sm">✏</button>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>HR Team</strong></td>
+                <td><span class="group-type-tag gtype-dept">Department</span></td>
+                <td style="font-size:11.5px;color:var(--text-muted);">Human resources personnel of Acme Corp</td>
+                <td><div class="pill-group"><span class="pill">HR &amp; Payroll</span></div></td>
+                <td>~18</td>
+                <td><span class="badge badge-teal">GRP_HR</span></td>
+                <td><span class="badge badge-success">Active</span></td>
+                <td class="actions-cell">
+                  <button class="btn btn-teal btn-sm" onclick="show('group-access')">🔑 Modules</button>
+                  <button class="btn btn-outline btn-sm">✏</button>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Public Report Viewers</strong></td>
+                <td><span class="group-type-tag gtype-public">Public</span></td>
+                <td style="font-size:11.5px;color:var(--text-muted);">No user account needed — public access to reports</td>
+                <td><div class="pill-group"><span class="pill">Reports (View)</span></div></td>
+                <td>Public</td>
+                <td><span class="badge badge-gray">—</span></td>
+                <td><span class="badge badge-warning">Draft</span></td>
+                <td class="actions-cell">
+                  <button class="btn btn-teal btn-sm" onclick="show('group-access')">🔑 Modules</button>
+                  <button class="btn btn-outline btn-sm">✏</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- BETA LTD -->
+      <div class="company-section">
+        <div class="company-section-header">
+          <span style="font-size:16px;">🏢</span>
+          <span class="company-section-name">Beta Ltd</span>
+          <span class="company-section-meta">3 groups &nbsp;·&nbsp; Finance, HR, Procurement</span>
+          <button class="btn btn-outline btn-sm">+ Add Group</button>
+        </div>
+        <div class="company-section-body">
+          <table>
+            <thead><tr><th>Group Name</th><th>Type</th><th>Description</th><th>Modules Linked</th><th>Est. Members</th><th>Role Template</th><th>Status</th><th>Manage</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong>Finance Team</strong></td>
+                <td><span class="group-type-tag gtype-dept">Department</span></td>
+                <td style="font-size:11.5px;color:var(--text-muted);">Finance staff of Beta Ltd</td>
+                <td><div class="pill-group"><span class="pill">Finance</span></div></td>
+                <td>~28</td>
+                <td><span class="badge badge-teal">GRP_FINANCE</span></td>
+                <td><span class="badge badge-success">Active</span></td>
+                <td class="actions-cell">
+                  <button class="btn btn-teal btn-sm" onclick="show('group-access')">🔑 Modules</button>
+                  <button class="btn btn-outline btn-sm">✏</button>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>HR Team</strong></td>
+                <td><span class="group-type-tag gtype-dept">Department</span></td>
+                <td style="font-size:11.5px;color:var(--text-muted);">HR personnel of Beta Ltd</td>
+                <td><div class="pill-group"><span class="pill">HR &amp; Payroll</span></div></td>
+                <td>~11</td>
+                <td><span class="badge badge-teal">GRP_HR</span></td>
+                <td><span class="badge badge-success">Active</span></td>
+                <td class="actions-cell">
+                  <button class="btn btn-teal btn-sm" onclick="show('group-access')">🔑 Modules</button>
+                  <button class="btn btn-outline btn-sm">✏</button>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Procurement Team</strong></td>
+                <td><span class="group-type-tag gtype-dept">Department</span></td>
+                <td style="font-size:11.5px;color:var(--text-muted);">Purchase and vendor management</td>
+                <td><div class="pill-group"><span class="pill">Procurement</span><span class="pill">Inventory</span></div></td>
+                <td>~9</td>
+                <td><span class="badge badge-gray">Custom</span></td>
+                <td><span class="badge badge-success">Active</span></td>
+                <td class="actions-cell">
+                  <button class="btn btn-teal btn-sm" onclick="show('group-access')">🔑 Modules</button>
+                  <button class="btn btn-outline btn-sm">✏</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- GAMMA INC -->
+      <div class="company-section">
+        <div class="company-section-header">
+          <span style="font-size:16px;">🏢</span>
+          <span class="company-section-name">Gamma Inc</span>
+          <span class="company-section-meta">3 groups &nbsp;·&nbsp; Finance, Audit, Public</span>
+          <button class="btn btn-outline btn-sm">+ Add Group</button>
+        </div>
+        <div class="company-section-body">
+          <table>
+            <thead><tr><th>Group Name</th><th>Type</th><th>Description</th><th>Modules Linked</th><th>Est. Members</th><th>Role Template</th><th>Status</th><th>Manage</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong>Finance Team</strong></td>
+                <td><span class="group-type-tag gtype-dept">Department</span></td>
+                <td style="font-size:11.5px;color:var(--text-muted);">Finance staff of Gamma Inc</td>
+                <td><div class="pill-group"><span class="pill">Finance</span><span class="pill">Procurement</span></div></td>
+                <td>~33</td>
+                <td><span class="badge badge-teal">GRP_FINANCE</span></td>
+                <td><span class="badge badge-success">Active</span></td>
+                <td class="actions-cell">
+                  <button class="btn btn-teal btn-sm" onclick="show('group-access')">🔑 Modules</button>
+                  <button class="btn btn-outline btn-sm">✏</button>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Audit Team</strong></td>
+                <td><span class="group-type-tag gtype-dept">Department</span></td>
+                <td style="font-size:11.5px;color:var(--text-muted);">Internal audit of Gamma Inc</td>
+                <td><div class="pill-group"><span class="pill pill-teal">All (View)</span></div></td>
+                <td>~8</td>
+                <td><span class="badge badge-teal">GRP_AUDIT</span></td>
+                <td><span class="badge badge-success">Active</span></td>
+                <td class="actions-cell">
+                  <button class="btn btn-teal btn-sm" onclick="show('group-access')">🔑 Modules</button>
+                  <button class="btn btn-outline btn-sm">✏</button>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Public Portal Users</strong></td>
+                <td><span class="group-type-tag gtype-public">Public</span></td>
+                <td style="font-size:11.5px;color:var(--text-muted);">Non-authenticated stakeholders — report view only</td>
+                <td><div class="pill-group"><span class="pill">Reports (View)</span></div></td>
+                <td>Public</td>
+                <td><span class="badge badge-gray">—</span></td>
+                <td><span class="badge badge-warning">Draft</span></td>
+                <td class="actions-cell">
+                  <button class="btn btn-teal btn-sm" onclick="show('group-access')">🔑 Modules</button>
+                  <button class="btn btn-outline btn-sm">✏</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ SCREEN: GROUP MODULE ACCESS ═══ -->
+<div class="screen" id="screen-group-access">
+  <!-- Header -->
+  <div class="card" style="margin-bottom:14px;">
+    <div class="card-body" style="padding:14px 18px;">
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+        <div style="width:46px;height:46px;background:var(--teal-light);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🏢</div>
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:16px;font-weight:700;">Finance Team</span>
+            <span class="rtype rtype-group">Group-Linked</span>
+          </div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:3px;">
+            Company: <strong>Acme Corp</strong> &nbsp;·&nbsp;
+            Role Template: <code>GRP_FINANCE</code> &nbsp;·&nbsp;
+            Est. ~45 members (sourced from org chart) &nbsp;·&nbsp;
+            <span class="badge badge-warning" style="font-size:10px;">No individual user mapping</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:7px;">
+          <button class="btn btn-outline btn-sm" onclick="openModal('modal-copy-group')">📋 Copy from another group</button>
+          <button class="btn btn-success">💾 Save Access</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert alert-teal">
+    🏢 <strong>Group-Based Access:</strong> Permissions configured here apply to all members of the <em>Finance Team — Acme Corp</em> group. Individual user accounts do not need to be linked. Access is resolved at login via group membership lookup.
+  </div>
+
+  <!-- Quick Grant bar -->
+  <div class="copy-panel">
+    <div class="copy-panel-title">⚡ Quick Access Setup</div>
+    <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;">
+      <span style="font-size:12.5px;color:var(--text-muted);">Grant all:</span>
+      <button class="btn btn-outline btn-sm">All Modules</button>
+      <button class="btn btn-outline btn-sm">📊 Finance Module</button>
+      <button class="btn btn-outline btn-sm">All VIEW only</button>
+      <span style="margin-left:auto;font-size:12.5px;color:var(--text-muted);">Copy from group:</span>
+      <select style="width:220px;font-size:12px;">
+        <option>— Select a group to copy from —</option>
+        <option>Finance Team – Beta Ltd</option>
+        <option>Finance Team – Gamma Inc</option>
+        <option>Audit Team – Acme Corp</option>
+      </select>
+      <button class="btn btn-teal btn-sm">📋 Copy</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active">All Modules</div>
+    <div class="tab">📊 Finance</div>
+    <div class="tab">📦 Inventory</div>
+    <div class="tab">👥 HR &amp; Payroll</div>
+    <div class="tab">🏭 Production</div>
+    <div class="tab">🛒 Procurement</div>
+  </div>
+
+  <!-- Finance module -->
+  <div class="perm-module-row" style="border-left:3px solid var(--teal);">
+    <input type="checkbox" checked style="width:14px;height:14px;accent-color:var(--teal);" />
+    <span style="font-size:15px;">📊</span>
+    <span class="perm-module-name">Finance</span>
+    <span style="font-size:11px;color:var(--text-muted);">9 pages · 27 actions</span>
+    <span class="badge badge-teal" style="margin-left:6px;">35 granted</span>
+    <button class="btn btn-xs" style="margin-left:8px;background:var(--teal-light);color:var(--teal);border:1px solid #99f6e4;">All</button>
+    <button class="btn btn-xs btn-outline" style="margin-left:3px;">None</button>
+    <span style="font-size:11.5px;color:var(--teal);cursor:pointer;margin-left:8px;">▾</span>
+  </div>
+  <div class="perm-pages">
+    <div class="perm-page-row">
+      <input type="checkbox" checked style="width:13px;height:13px;accent-color:var(--teal);" />
+      <span class="perm-page-name">General Ledger</span>
+      <span style="font-size:11px;color:var(--text-muted);">5 actions</span>
+      <button class="btn btn-xs" style="margin-left:6px;background:var(--teal-light);color:var(--teal);border:1px solid #99f6e4;">All</button>
+      <button class="btn btn-xs btn-outline" style="margin-left:3px;">None</button>
+    </div>
+    <div class="perm-actions-row">
+      <label class="action-chip" style="background:var(--teal-light);border-color:#99f6e4;color:var(--teal);"><input type="checkbox" checked /> VIEW</label>
+      <label class="action-chip" style="background:var(--teal-light);border-color:#99f6e4;color:var(--teal);"><input type="checkbox" checked /> ADD</label>
+      <label class="action-chip" style="background:var(--teal-light);border-color:#99f6e4;color:var(--teal);"><input type="checkbox" checked /> EDIT</label>
+      <label class="action-chip"><input type="checkbox" /> DELETE</label>
+      <label class="action-chip" style="background:var(--teal-light);border-color:#99f6e4;color:var(--teal);"><input type="checkbox" checked /> EXPORT</label>
+    </div>
+    <div class="perm-page-row">
+      <input type="checkbox" checked style="width:13px;height:13px;accent-color:var(--teal);" />
+      <span class="perm-page-name">Invoice Management</span>
+      <span style="font-size:11px;color:var(--text-muted);">7 actions</span>
+      <button class="btn btn-xs" style="margin-left:6px;background:var(--teal-light);color:var(--teal);border:1px solid #99f6e4;">All</button>
+      <button class="btn btn-xs btn-outline" style="margin-left:3px;">None</button>
+    </div>
+    <div class="perm-actions-row">
+      <label class="action-chip" style="background:var(--teal-light);border-color:#99f6e4;color:var(--teal);"><input type="checkbox" checked /> VIEW</label>
+      <label class="action-chip" style="background:var(--teal-light);border-color:#99f6e4;color:var(--teal);"><input type="checkbox" checked /> ADD</label>
+      <label class="action-chip" style="background:var(--teal-light);border-color:#99f6e4;color:var(--teal);"><input type="checkbox" checked /> EDIT</label>
+      <label class="action-chip"><input type="checkbox" /> DELETE</label>
+      <label class="action-chip" style="background:var(--teal-light);border-color:#99f6e4;color:var(--teal);"><input type="checkbox" checked /> APPROVE</label>
+      <label class="action-chip" style="background:var(--teal-light);border-color:#99f6e4;color:var(--teal);"><input type="checkbox" checked /> EXPORT</label>
+      <label class="action-chip"><input type="checkbox" /> PRINT</label>
+    </div>
+    <div class="perm-page-row">
+      <input type="checkbox" checked style="width:13px;height:13px;accent-color:var(--teal);" />
+      <span class="perm-page-name">Financial Reports</span>
+      <span style="font-size:11px;color:var(--text-muted);">4 actions</span>
+      <button class="btn btn-xs" style="margin-left:6px;background:var(--teal-light);color:var(--teal);border:1px solid #99f6e4;">All</button>
+      <button class="btn btn-xs btn-outline" style="margin-left:3px;">None</button>
+    </div>
+    <div class="perm-actions-row">
+      <label class="action-chip" style="background:var(--teal-light);border-color:#99f6e4;color:var(--teal);"><input type="checkbox" checked /> VIEW</label>
+      <label class="action-chip"><input type="checkbox" /> ADD</label>
+      <label class="action-chip" style="background:var(--teal-light);border-color:#99f6e4;color:var(--teal);"><input type="checkbox" checked /> EXPORT</label>
+      <label class="action-chip" style="background:var(--teal-light);border-color:#99f6e4;color:var(--teal);"><input type="checkbox" checked /> PRINT</label>
+    </div>
+  </div>
+  <div class="perm-module-row" style="margin-top:4px;border-left:3px solid var(--border);">
+    <input type="checkbox" style="width:14px;height:14px;accent-color:var(--teal);" />
+    <span style="font-size:15px;">📦</span><span class="perm-module-name">Inventory</span>
+    <span style="font-size:11px;color:var(--text-muted);">8 pages · 24 actions</span>
+    <span class="badge badge-gray" style="margin-left:6px;">0 granted</span>
+    <span style="font-size:11.5px;color:var(--text-muted);cursor:pointer;margin-left:8px;">▸</span>
+  </div>
+  <div class="perm-module-row" style="margin-top:4px;border-left:3px solid var(--border);">
+    <input type="checkbox" style="width:14px;height:14px;accent-color:var(--teal);" />
+    <span style="font-size:15px;">👥</span><span class="perm-module-name">HR &amp; Payroll</span>
+    <span style="font-size:11px;color:var(--text-muted);">11 pages · 33 actions</span>
+    <span class="badge badge-gray" style="margin-left:6px;">0 granted</span>
+    <span style="font-size:11.5px;color:var(--text-muted);cursor:pointer;margin-left:8px;">▸</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ SCREEN: USERS ═══════════════ -->
+<div class="screen" id="screen-users">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">User Master</span>
+      <div style="display:flex;gap:7px;">
+        <button class="btn btn-outline btn-sm">📥 Import</button>
+        <button class="btn btn-primary" onclick="openModal('modal-user')">+ Add User</button>
+      </div>
+    </div>
+    <div class="card-body" style="padding:14px 18px;">
+      <div class="search-row">
+        <div class="search-wrap"><span class="search-ico">🔍</span><input type="text" placeholder="Search by name, employee ID, email…" /></div>
+        <select style="width:150px;"><option>All Departments</option><option>Finance</option><option>HR</option><option>Operations</option></select>
+        <select style="width:120px;"><option>All Status</option><option>Active</option><option>Inactive</option></select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th style="width:36px;"><input type="checkbox" /></th><th>Emp ID</th><th>Name</th><th>Email</th><th>Department</th><th>Roles (Individual)</th><th>Group Access</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr class="superadmin-row">
+              <td class="checkbox-cell"><input type="checkbox" /></td>
+              <td><code style="font-size:11px;">EMP-000</code></td>
+              <td><strong>Arun Kapoor</strong> <span class="badge badge-superadmin" style="font-size:10px;">👑 Superadmin</span></td>
+              <td style="font-size:11.5px;">arun.kapoor@erp.com</td>
+              <td>IT</td>
+              <td><div class="pill-group"><span class="pill superadmin-pill">👑 Super Admin</span></div></td>
+              <td><div class="pill-group"><span class="badge badge-gray" style="font-size:10px;">No group</span></div></td>
+              <td><span class="badge badge-success">Active</span></td>
+              <td class="actions-cell">
+                <button class="btn btn-primary btn-sm" onclick="show('user-role')">🔗 Roles</button>
+                <button class="btn btn-outline btn-sm">✏</button>
+              </td>
+            </tr>
+            <tr>
+              <td class="checkbox-cell"><input type="checkbox" /></td>
+              <td><code style="font-size:11px;">EMP-001</code></td>
+              <td><strong>Rahul Sharma</strong></td>
+              <td style="font-size:11.5px;">rahul.sharma@erp.com</td>
+              <td>Finance</td>
+              <td><div class="pill-group"><span class="pill">Finance Mgr</span></div></td>
+              <td><div class="pill-group"><span class="pill pill-teal">Finance Team – Acme</span></div></td>
+              <td><span class="badge badge-success">Active</span></td>
+              <td class="actions-cell">
+                <button class="btn btn-primary btn-sm" onclick="show('user-role')">🔗 Roles</button>
+                <button class="btn btn-outline btn-sm">✏</button>
+              </td>
+            </tr>
+            <tr>
+              <td class="checkbox-cell"><input type="checkbox" /></td>
+              <td><code style="font-size:11px;">EMP-002</code></td>
+              <td><strong>Priya Nair</strong></td>
+              <td style="font-size:11.5px;">priya.nair@erp.com</td>
+              <td>HR</td>
+              <td><div class="pill-group"><span class="pill">HR Officer</span></div></td>
+              <td><div class="pill-group"><span class="pill pill-teal">HR Team – Acme</span></div></td>
+              <td><span class="badge badge-success">Active</span></td>
+              <td class="actions-cell">
+                <button class="btn btn-primary btn-sm" onclick="show('user-role')">🔗 Roles</button>
+                <button class="btn btn-outline btn-sm">✏</button>
+              </td>
+            </tr>
+            <tr>
+              <td class="checkbox-cell"><input type="checkbox" /></td>
+              <td><code style="font-size:11px;">EMP-003</code></td>
+              <td><strong>Vikram Patel</strong></td>
+              <td style="font-size:11.5px;">vikram.patel@erp.com</td>
+              <td>Operations</td>
+              <td><div class="pill-group"><span class="pill">Plant Operator</span></div></td>
+              <td><div class="pill-group"><span class="badge badge-gray" style="font-size:10px;">No group</span></div></td>
+              <td><span class="badge badge-success">Active</span></td>
+              <td class="actions-cell">
+                <button class="btn btn-primary btn-sm" onclick="show('user-role')">🔗 Roles</button>
+                <button class="btn btn-outline btn-sm">✏</button>
+              </td>
+            </tr>
+            <tr>
+              <td class="checkbox-cell"><input type="checkbox" /></td>
+              <td><code style="font-size:11px;">EMP-004</code></td>
+              <td><strong>Anita Desai</strong></td>
+              <td style="font-size:11.5px;">anita.desai@erp.com</td>
+              <td>Audit</td>
+              <td><div class="pill-group"><span class="pill">Auditor</span></div></td>
+              <td><div class="pill-group"><span class="pill pill-teal">Audit Team – Acme</span></div></td>
+              <td><span class="badge badge-success">Active</span></td>
+              <td class="actions-cell">
+                <button class="btn btn-primary btn-sm" onclick="show('user-role')">🔗 Roles</button>
+                <button class="btn btn-outline btn-sm">✏</button>
+              </td>
+            </tr>
+            <tr>
+              <td class="checkbox-cell"><input type="checkbox" /></td>
+              <td><code style="font-size:11px;">EMP-005</code></td>
+              <td><strong>Mohammed Al-Hassan</strong></td>
+              <td style="font-size:11.5px;">m.hassan@erp.com</td>
+              <td>Operations</td>
+              <td><div class="pill-group"><span class="pill pill-orange">Embassy Coord</span></div></td>
+              <td><div class="pill-group"><span class="badge badge-gray" style="font-size:10px;">No group</span></div></td>
+              <td><span class="badge badge-success">Active</span></td>
+              <td class="actions-cell">
+                <button class="btn btn-primary btn-sm" onclick="show('user-role')">🔗 Roles</button>
+                <button class="btn btn-outline btn-sm">✏</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ SCREEN: USER-ROLE MAPPING ════ -->
+<div class="screen" id="screen-user-role">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div>
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-header"><span class="card-title">User Details</span><button class="btn btn-outline btn-sm">✏ Edit</button></div>
+        <div class="card-body">
+          <div style="display:flex;align-items:center;gap:13px;margin-bottom:12px;">
+            <div style="width:48px;height:48px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;flex-shrink:0;">RS</div>
+            <div>
+              <div style="font-size:15px;font-weight:700;">Rahul Sharma</div>
+              <div style="font-size:11.5px;color:var(--text-muted);">EMP-001 · Finance Dept · rahul.sharma@erp.com</div>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div style="font-size:12px;margin-bottom:6px;font-weight:600;color:var(--text-muted);">Individual Roles Assigned</div>
+          <div style="display:flex;flex-direction:column;gap:7px;">
+            <div style="display:flex;align-items:center;gap:9px;padding:8px;border:1px solid #bfdbfe;border-radius:6px;background:var(--primary-light);">
+              <span style="font-size:14px;">📊</span>
+              <div style="flex:1;"><div style="font-size:12.5px;font-weight:600;">Finance Manager</div><div style="font-size:11px;color:var(--primary);">42 permissions</div></div>
+              <button style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:15px;">✕</button>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div style="font-size:12px;margin-bottom:6px;font-weight:600;color:#92400e;">Superadmin Access (when assigned)</div>
+          <div class="superadmin-access-summary">
+            👑 Full Access – All Modules
+          </div>
+          <div style="font-size:10.5px;color:#92400e;margin-top:4px;">134 / 134 permissions granted across 12 modules, 47 pages, and 134 actions.</div>
+          <div class="divider"></div>
+          <div style="font-size:12px;margin-bottom:6px;font-weight:600;color:var(--teal);">Group-Based Access (Inherited)</div>
+          <div style="display:flex;flex-direction:column;gap:7px;">
+            <div style="display:flex;align-items:center;gap:9px;padding:8px;border:1px solid #99f6e4;border-radius:6px;background:var(--teal-light);">
+              <span style="font-size:14px;">🏢</span>
+              <div style="flex:1;"><div style="font-size:12.5px;font-weight:600;">Finance Team — Acme Corp</div><div style="font-size:11px;color:var(--teal);">Group access · Finance, Reports modules · ~45 members</div></div>
+              <span class="badge badge-teal" style="font-size:10px;">Auto</span>
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:8px;">⚙ Group access is automatically inherited from org chart membership. Contact your IT/HR admin to change group membership.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Assign / Remove Roles</span>
+        <button class="btn btn-success btn-sm">💾 Save</button>
+      </div>
+      <div class="card-body" style="padding:14px 18px;">
+        <div class="copy-panel" style="margin-bottom:12px;">
+          <div class="copy-panel-title">Copy access from another user</div>
+          <div style="display:flex;gap:8px;">
+            <input type="text" placeholder="Search user to copy from…" style="flex:1;" />
+            <button class="btn btn-outline btn-sm">📋 Copy Roles</button>
+          </div>
+        </div>
+        <div style="margin-bottom:8px;font-size:11.5px;color:var(--text-muted);">Select individual roles to assign (group access is automatic):</div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <label class="superadmin-assign-row" style="display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:6px;cursor:pointer;flex-wrap:wrap;">
+            <input type="checkbox" style="width:14px;height:14px;accent-color:#b45309;" />
+            <div style="flex:1;display:flex;align-items:center;gap:6px;">
+              <span>👑 Super Administrator</span>
+              <span class="badge badge-superadmin" style="font-size:10px;">👑 Superadmin</span>
+              <span style="font-size:10.5px;color:var(--text-muted);">· 134 perms (all)</span>
+            </div>
+            <div class="superadmin-warning-inline" style="width:100%;margin-top:4px;">
+              ⚠ Grants full access to all modules and actions. Assign only to trusted administrators.
+            </div>
+          </label>
+          <label style="display:flex;align-items:center;gap:9px;padding:9px 11px;border:2px solid var(--primary);border-radius:6px;cursor:pointer;background:var(--primary-light);">
+            <input type="checkbox" checked style="width:14px;height:14px;accent-color:var(--primary);" />
+            <div style="flex:1;">📊 Finance Manager <span style="font-size:10.5px;color:var(--text-muted);">· 42 perms</span></div>
+            <span class="badge badge-primary">Assigned</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:9px;padding:9px 11px;border:1px solid var(--border);border-radius:6px;cursor:pointer;">
+            <input type="checkbox" style="width:14px;height:14px;accent-color:var(--primary);" />
+            <div style="flex:1;">👁 Auditor <span style="font-size:10.5px;color:var(--text-muted);">· 47 perms</span></div>
+          </label>
+          <label style="display:flex;align-items:center;gap:9px;padding:9px 11px;border:1px solid #fed7aa;border-radius:6px;cursor:pointer;background:#fffdf7;">
+            <input type="checkbox" style="width:14px;height:14px;accent-color:#c2410c;" />
+            <div style="flex:1;">🌍 Embassy Coordinator <span style="font-size:10.5px;color:var(--text-muted);">· Geo-Scoped</span></div>
+            <span class="rtype rtype-geo" style="font-size:10px;">Geo-Scoped</span>
+          </label>
+          <div style="padding:9px 11px;border:1px solid #99f6e4;border-radius:6px;background:var(--teal-light);">
+            <div style="font-size:11.5px;font-weight:600;color:var(--teal);margin-bottom:5px;">🏢 Group Access (Auto-inherited — read only)</div>
+            <div style="font-size:11px;color:var(--teal);">Finance Team — Acme Corp &nbsp;(from org chart)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ══════════════════════════════════ MODALS ═════════════════════ -->
+
+<!-- Modal: Module -->
+<div class="modal-overlay" id="modal-module">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Add New Module</span><button class="modal-close" onclick="closeModal('modal-module')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Module Name *</label><input type="text" placeholder="e.g. Finance Management" /></div>
+        <div class="form-group"><label>Module Code *</label><input type="text" placeholder="e.g. FIN" /></div>
+        <div class="form-group"><label>Icon / Emoji</label><input type="text" placeholder="📊" /></div>
+        <div class="form-group"><label>Sort Order</label><input type="text" placeholder="1" /></div>
+        <div class="form-group full"><label>Description</label><textarea placeholder="Describe this module…"></textarea></div>
+        <div class="form-group"><label>Status</label><select><option>Active</option><option>Inactive</option></select></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modal-module')">Cancel</button><button class="btn btn-primary">Save Module</button></div>
+  </div>
+</div>
+
+<!-- Modal: Page -->
+<div class="modal-overlay" id="modal-page">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Add Page / Sub-page</span><button class="modal-close" onclick="closeModal('modal-page')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full"><label>Parent Module *</label><select><option>Select Module…</option><option>📊 Finance</option><option>📦 Inventory</option><option>👥 HR &amp; Payroll</option></select></div>
+        <div class="form-group"><label>Page Name *</label><input type="text" placeholder="e.g. Invoice Management" /></div>
+        <div class="form-group"><label>Page Code *</label><input type="text" placeholder="e.g. FIN_INV" /></div>
+        <div class="form-group full"><label>Route / URL</label><input type="text" placeholder="/finance/invoices" /></div>
+        <div class="form-group"><label>Sort Order</label><input type="text" placeholder="1" /></div>
+        <div class="form-group"><label>Status</label><select><option>Active</option><option>Inactive</option></select></div>
+        <div class="form-group full"><label>Description</label><textarea placeholder="Describe this page…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modal-page')">Cancel</button><button class="btn btn-primary">Save Page</button></div>
+  </div>
+</div>
+
+<!-- Modal: Action -->
+<div class="modal-overlay" id="modal-action">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Add Action / Privilege</span><button class="modal-close" onclick="closeModal('modal-action')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Module *</label><select><option>📊 Finance</option></select></div>
+        <div class="form-group"><label>Page *</label><select><option>Invoice Management</option></select></div>
+        <div class="form-group"><label>Action Name *</label><input type="text" placeholder="e.g. Approve Invoice" /></div>
+        <div class="form-group"><label>Action Code *</label><input type="text" placeholder="e.g. FIN_INV_APPR" /></div>
+        <div class="form-group"><label>Action Type *</label><select><option>VIEW</option><option>ADD</option><option>EDIT</option><option>DELETE</option><option>EXPORT</option><option>APPROVE</option><option>PRINT</option></select></div>
+        <div class="form-group"><label>Status</label><select><option>Active</option><option>Inactive</option></select></div>
+        <div class="form-group full"><label>Description</label><textarea placeholder="What does this action allow?"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modal-action')">Cancel</button><button class="btn btn-primary">Save Action</button></div>
+  </div>
+</div>
+
+<!-- Modal: Role -->
+<div class="modal-overlay" id="modal-role">
+  <div class="modal" style="width:620px;">
+    <div class="modal-header"><span class="modal-title">Create New Role</span><button class="modal-close" onclick="closeModal('modal-role')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Role Name *</label><input type="text" placeholder="e.g. Finance Analyst" /></div>
+        <div class="form-group"><label>Role Code *</label><input type="text" placeholder="e.g. FIN_ANALYST" /></div>
+        <div class="form-group full"><label>Description</label><textarea placeholder="Describe the purpose of this role…"></textarea></div>
+        <div class="form-group"><label>Status</label><select><option>Active</option><option>Inactive</option></select></div>
+      </div>
+      <div class="divider"></div>
+      <!-- Access Model -->
+      <div style="margin-bottom:14px;">
+        <label style="display:block;margin-bottom:8px;">Access Model *</label>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:2px solid var(--primary);border-radius:8px;cursor:pointer;background:var(--primary-light);">
+            <input type="radio" name="access-model" checked style="margin-top:2px;" />
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--primary);">🛡 User-Linked (Individual RBAC)</div>
+              <div style="font-size:11.5px;color:var(--text-muted);">Role is manually assigned to specific users. Standard RBAC.</div>
+            </div>
+          </label>
+          <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid #fed7aa;border-radius:8px;cursor:pointer;">
+            <input type="radio" name="access-model" style="margin-top:2px;" />
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#c2410c;">🌍 Geo-Scoped (Country / Embassy)</div>
+              <div style="font-size:11.5px;color:var(--text-muted);">Role is assigned to users but data is restricted to selected countries and embassies.</div>
+            </div>
+          </label>
+          <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid #99f6e4;border-radius:8px;cursor:pointer;">
+            <input type="radio" name="access-model" style="margin-top:2px;" />
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--teal);">🏢 Group-Linked (Team / Dept Access)</div>
+              <div style="font-size:11.5px;color:var(--text-muted);">Access is assigned to a User Group (Finance Team, Audit Team etc.) under a company. No individual user assignment. Members inherit access from org chart/directory group membership.</div>
+            </div>
+          </label>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="copy-panel">
+        <div class="copy-panel-title">Initialize permissions from existing role (optional)</div>
+        <div style="display:flex;gap:8px;">
+          <select style="flex:1;"><option value="">— Start blank —</option><option>🔑 Super Administrator</option><option>📊 Finance Manager</option><option>👁 Auditor (Read-only)</option></select>
+          <span style="font-size:12px;color:var(--text-muted);align-self:center;">Copy permissions</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modal-role')">Cancel</button><button class="btn btn-primary">Create Role &amp; Set Permissions →</button></div>
+  </div>
+</div>
+
+<!-- Modal: Copy From Role -->
+<div class="modal-overlay" id="modal-copy">
+  <div class="modal" style="width:480px;">
+    <div class="modal-header"><span class="modal-title">📋 Copy Permissions From Role</span><button class="modal-close" onclick="closeModal('modal-copy')">✕</button></div>
+    <div class="modal-body">
+      <div class="alert alert-warning">⚠ Copying will replace current permissions. This can be undone.</div>
+      <div class="form-group" style="margin-bottom:12px;"><label>Target Role</label><input type="text" value="Finance Manager" style="background:#f8fafc;" readonly /></div>
+      <div class="form-group" style="margin-bottom:12px;"><label>Copy FROM *</label>
+        <select><option>— Select source —</option><option>🔑 Super Admin (134)</option><option>👁 Auditor (47)</option><option>🏭 Plant Operator (19)</option></select>
+      </div>
+      <div class="form-group"><label>Copy Mode</label>
+        <div style="display:flex;flex-direction:column;gap:7px;margin-top:5px;">
+          <label style="display:flex;align-items:center;gap:8px;font-weight:400;font-size:12.5px;"><input type="radio" name="cmode" checked /> Replace all — overwrite existing</label>
+          <label style="display:flex;align-items:center;gap:8px;font-weight:400;font-size:12.5px;"><input type="radio" name="cmode" /> Merge — add new, keep existing</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modal-copy')">Cancel</button><button class="btn btn-primary">Copy Permissions</button></div>
+  </div>
+</div>
+
+<!-- Modal: Copy From Group -->
+<div class="modal-overlay" id="modal-copy-group">
+  <div class="modal" style="width:480px;">
+    <div class="modal-header"><span class="modal-title">📋 Copy Access From Another Group</span><button class="modal-close" onclick="closeModal('modal-copy-group')">✕</button></div>
+    <div class="modal-body">
+      <div class="alert alert-teal">Copies module access configuration from another user group to this group.</div>
+      <div class="form-group" style="margin-bottom:12px;"><label>Target Group</label><input type="text" value="Finance Team — Acme Corp" style="background:#f8fafc;" readonly /></div>
+      <div class="form-group" style="margin-bottom:12px;"><label>Copy FROM *</label>
+        <select><option>— Select source group —</option><option>Finance Team – Beta Ltd</option><option>Finance Team – Gamma Inc</option><option>Audit Team – Acme Corp</option></select>
+      </div>
+      <div class="form-group"><label>Copy Mode</label>
+        <div style="display:flex;flex-direction:column;gap:7px;margin-top:5px;">
+          <label style="display:flex;align-items:center;gap:8px;font-weight:400;font-size:12.5px;"><input type="radio" name="gmode" checked /> Replace all</label>
+          <label style="display:flex;align-items:center;gap:8px;font-weight:400;font-size:12.5px;"><input type="radio" name="gmode" /> Merge — add, keep existing</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modal-copy-group')">Cancel</button><button class="btn btn-teal">Copy Group Access</button></div>
+  </div>
+</div>
+
+<!-- Modal: User Group -->
+<div class="modal-overlay" id="modal-group">
+  <div class="modal" style="width:580px;">
+    <div class="modal-header"><span class="modal-title">Create User Group</span><button class="modal-close" onclick="closeModal('modal-group')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Group Name *</label><input type="text" placeholder="e.g. Finance Team" /></div>
+        <div class="form-group"><label>Company *</label><select><option>Acme Corp</option><option>Beta Ltd</option><option>Gamma Inc</option><option>Delta Co</option></select></div>
+        <div class="form-group"><label>Group Type *</label>
+          <select>
+            <option>Department Team (org chart–based)</option>
+            <option>Public Group (no user account needed)</option>
+            <option>External Partners</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Role Template</label>
+          <select><option>GRP_FINANCE</option><option>GRP_AUDIT</option><option>GRP_HR</option><option>Custom</option></select>
+        </div>
+        <div class="form-group full"><label>Description</label><textarea placeholder="Describe this group and its access purpose…"></textarea></div>
+        <div class="form-group"><label>Status</label><select><option>Active</option><option>Draft</option><option>Inactive</option></select></div>
+      </div>
+      <div class="divider"></div>
+      <div class="copy-panel">
+        <div class="copy-panel-title">Copy module access from existing group (optional)</div>
+        <div style="display:flex;gap:8px;">
+          <select style="flex:1;"><option value="">— Start blank —</option><option>Finance Team – Beta Ltd</option><option>Finance Team – Gamma Inc</option><option>Audit Team – Acme Corp</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modal-group')">Cancel</button><button class="btn btn-teal">Create Group &amp; Configure Access →</button></div>
+  </div>
+</div>
+
+<!-- Modal: User -->
+<div class="modal-overlay" id="modal-user">
+  <div class="modal" style="width:600px;">
+    <div class="modal-header"><span class="modal-title">Add New User</span><button class="modal-close" onclick="closeModal('modal-user')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>First Name *</label><input type="text" placeholder="First name" /></div>
+        <div class="form-group"><label>Last Name *</label><input type="text" placeholder="Last name" /></div>
+        <div class="form-group"><label>Employee ID *</label><input type="text" placeholder="EMP-007" /></div>
+        <div class="form-group"><label>Email *</label><input type="email" placeholder="user@company.com" /></div>
+        <div class="form-group"><label>Department</label><select><option>Finance</option><option>HR</option><option>Operations</option><option>Audit</option></select></div>
+        <div class="form-group"><label>Designation</label><input type="text" placeholder="e.g. Senior Analyst" /></div>
+        <div class="form-group"><label>Company</label><select><option>Acme Corp</option><option>Beta Ltd</option><option>Gamma Inc</option></select></div>
+        <div class="form-group"><label>Status</label><select><option>Active</option><option>Inactive</option></select></div>
+      </div>
+      <div class="divider"></div>
+      <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:8px;">Assign Individual Roles</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:10px;">
+        <label style="display:flex;align-items:center;gap:7px;font-weight:400;font-size:12.5px;padding:7px;border:1px solid var(--border);border-radius:5px;cursor:pointer;"><input type="checkbox" /> Finance Manager</label>
+        <label style="display:flex;align-items:center;gap:7px;font-weight:400;font-size:12.5px;padding:7px;border:1px solid var(--border);border-radius:5px;cursor:pointer;"><input type="checkbox" /> Auditor</label>
+        <label style="display:flex;align-items:center;gap:7px;font-weight:400;font-size:12.5px;padding:7px;border:1px solid var(--border);border-radius:5px;cursor:pointer;"><input type="checkbox" /> Plant Operator</label>
+        <label style="display:flex;align-items:center;gap:7px;font-weight:400;font-size:12.5px;padding:7px;border:1px solid #fed7aa;border-radius:5px;cursor:pointer;background:#fffdf7;"><input type="checkbox" /> 🌍 Embassy Coordinator (Geo)</label>
+      </div>
+      <div style="background:var(--teal-light);border:1px solid #99f6e4;border-radius:6px;padding:10px 12px;font-size:12px;color:var(--teal);">
+        🏢 <strong>Group Access</strong> is auto-inherited from the user's org chart group membership (based on Company + Department). No manual setup needed.
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modal-user')">Cancel</button><button class="btn btn-primary">Create User</button></div>
+  </div>
+</div>
+
+<script>
+const pages = {
+  dashboard:    { title: 'Dashboard',                                    bc: ['RBAC', 'Dashboard'] },
+  modules:      { title: 'Module Management',                            bc: ['RBAC', 'Modules'] },
+  pages:        { title: 'Pages / Sub-pages',                            bc: ['RBAC', 'Modules', 'Pages'] },
+  actions:      { title: 'Actions & Privileges',                         bc: ['RBAC', 'Modules', 'Actions'] },
+  roles:        { title: 'Role Management',                              bc: ['RBAC', 'Roles'] },
+  'role-detail':{ title: 'Role Permissions — Finance Manager',           bc: ['RBAC', 'Roles', 'Permissions'] },
+  'geo-scope':  { title: 'Geographic Scope — Embassy Coordinator',       bc: ['RBAC', 'Roles', 'Geo Scope'] },
+  matrix:       { title: 'Permission Matrix',                            bc: ['RBAC', 'Permission Matrix'] },
+  'user-groups':{ title: 'User Groups — Group-Based Access',            bc: ['RBAC', 'Group Access', 'User Groups'] },
+  'group-access':{ title: 'Group Module Access — Finance Team (Acme)',  bc: ['RBAC', 'Group Access', 'Module Permissions'] },
+  users:        { title: 'User Master',                                  bc: ['RBAC', 'Users'] },
+  'user-role':  { title: 'User–Role Mapping — Rahul Sharma',            bc: ['RBAC', 'Users', 'Role Mapping'] },
+};
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+  const s = document.getElementById('screen-' + id);
+  if (s) s.classList.add('active');
+  const p = pages[id];
+  if (p) {
+    document.getElementById('page-title').textContent = p.title;
+    document.getElementById('breadcrumb').innerHTML = p.bc.map((b, i) =>
+      i === p.bc.length - 1 ? `<span class="current">${b}</span>` : `<span>${b}</span> <span>›</span>`
+    ).join('');
+  }
+  document.querySelectorAll('.sidebar-item').forEach(item => {
+    const oc = item.getAttribute('onclick') || '';
+    if (oc.includes(`'${id}'`)) item.classList.add('active');
+  });
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function setScopeType(el) {
+  document.querySelectorAll('.scope-type-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+</script>
+</body>
+</html>
