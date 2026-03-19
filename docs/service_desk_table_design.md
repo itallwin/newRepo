@@ -10,6 +10,22 @@ This schema follows the same convention used in your Admin Portal design:
 DDL file:
 
 - `db/oracle/service_desk_schema.sql`
+- single-schema deployment wrapper: `db/oracle/deploy_service_desk_single_schema.sql`
+
+## Single schema consolidation
+
+All tables are designed to be created in one schema owner (single Oracle schema).
+
+Use:
+
+- `db/oracle/deploy_service_desk_single_schema.sql`
+
+This wrapper script:
+
+1. Creates one schema owner (configurable; default `SDOPS`)
+2. Grants required object privileges
+3. Sets current schema to that owner
+4. Executes `service_desk_schema.sql` so all `TblMstSD...` and `TblTrnSD...` objects are consolidated in that same schema
 
 ## Core coverage (menus + operations)
 
