@@ -53,7 +53,7 @@ This design is derived from the portal screens in `rbac-admin-portal.html`:
    - `TblMstRBACUserGroup`
    - `TblTrnRBACGroupMembership`
    - `TblTrnRBACGroupRole`
-   - `TblTrnRBACPermission` (for `GranteeTypeCd='GROUP'`)
+   - `TblTrnRBACPermission` (for `GranteeTypeCode='GROUP'`)
 
 5. **Reference/master**
    - `TblMstRBACCompany`
@@ -73,9 +73,9 @@ This design is derived from the portal screens in `rbac-admin-portal.html`:
 ## Notes for implementation
 
 - `TblTrnRBACPermission` handles both role and group permissions:
-  - `GranteeTypeCd='ROLE'` + `RoleUno`
-  - `GranteeTypeCd='GROUP'` + `UserGroupUno`
-- `StatusCd` has been replaced with `IsActive` across the schema.
+  - `GranteeTypeCode='ROLE'` + `RoleUno`
+  - `GranteeTypeCode='GROUP'` + `UserGroupUno`
+- `StatusCode` has been replaced with `IsActive` across the schema.
 - Roles are soft-delete friendly:
   - active uniqueness is enforced with function-based unique indexes on `RoleCode` and `RoleNameEn` only when `DeletedOn IS NULL`
   - this allows deleting a role and re-creating the same role code/name later
