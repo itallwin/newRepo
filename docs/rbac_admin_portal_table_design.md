@@ -48,7 +48,13 @@ This design is derived from the portal screens in `rbac-admin-portal.html`:
 3. **User model**
    - `TblMstRBACUser`
    - `TblTrnRBACUserRole`
+   - `TblMstRBACAllowedEmailDomain` (email whitelist)
    - User org links: `CompanyUno`, `DepartmentUno`, `DivisionUno`, `SectionUno`
+   - Compliance:
+     - Department + Division mandatory, Section optional
+     - Account lock after 3 failed password attempts
+     - Password history retained in `TblTrnRBACUserPasswordHistory` (keep latest 5 by policy/job)
+     - First/Last login fields on user profile
 
 4. **Group-based access**
    - `TblMstRBACUserGroup`
@@ -66,6 +72,14 @@ This design is derived from the portal screens in `rbac-admin-portal.html`:
 
 6. **Audit**
    - `TblTrnRBACAuditLog`
+   - `TblTrnRBACUserLoginAudit` (login attempts)
+   - `TblTrnRBACUserSecurityAudit` (security events)
+   - `TblTrnRBACPermissionAudit` (all permission inserts/updates/deletes)
+   - `TblTrnRBACUserReviewAudit` (review campaign audit trail)
+
+7. **Compliance review**
+   - `TblTrnRBACUserReviewCampaign`
+   - `TblTrnRBACUserReviewItem`
 
 ## Access models covered
 
@@ -86,6 +100,16 @@ This design is derived from the portal screens in `rbac-admin-portal.html`:
   - Department (`DepartmentUno`)
   - Division (`DivisionUno`)
   - Section (`SectionUno`)
+- Password/compliance controls:
+  - `TblMstRBACUser` has failed-attempt lock controls (`FailedPasswordAttemptCount`, `IsAccountLocked`, `AccountLockedOn`)
+  - `CK_MstUser_LockRule` enforces lock when failed attempts are 3 or more
+  - Password history is recorded in `TblTrnRBACUserPasswordHistory`; enforce "last 5" at app/service layer or with scheduled purge job
+- Email domain controls:
+  - User create/update is validated against `TblMstRBACAllowedEmailDomain`
+  - Trigger `TRG_MstUser_ValEmailDomain` blocks non-whitelisted domains
+- Permission change auditing:
+  - `TRG_TrnRBACPermAudit` writes every permission `INSERT/UPDATE/DELETE` to `TblTrnRBACPermissionAudit`
+  - captures old/new values, action type, changed timestamp and actor text (`ChangedBy`)
 - For UI language selection:
   - Show `*Ar` values when language = Arabic
   - Fallback to `*En` when Arabic value is null
