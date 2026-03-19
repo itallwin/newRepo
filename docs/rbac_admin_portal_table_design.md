@@ -54,10 +54,14 @@ This design is derived from the portal screens in `rbac-admin-portal.html`:
    - `TblMstRBACAllowedEmailDomain` (email whitelist)
    - `TblTrnRBACUserReactRequest` (reactivation request)
    - `TblTrnRBACUserReactApproval` (reactivation approval steps)
+   - `TblTrnRBACUserExpiryHist` (separate expired/reactivated history)
    - User org links: `CompanyUno`, `DepartmentUno`, `DivisionUno`, `SectionUno`
    - Compliance:
      - Department + Division mandatory, Section optional
      - Account lock after 3 failed password attempts
+     - Account expiry policy:
+       - `PERMANENT` staff: max 12 months
+       - `EXTERNAL` staff: max 6 months
      - Password history retained in `TblTrnRBACUserPasswordHistory` (keep latest 5 by policy/job)
      - First/Last login fields on user profile
 
@@ -79,6 +83,9 @@ This design is derived from the portal screens in `rbac-admin-portal.html`:
    - `TblTrnRBACAuditLog`
    - `TblTrnRBACUserLoginAudit` (login attempts)
    - `TblTrnRBACUserSecurityAudit` (security events)
+   - `TblTrnRBACUserActivity` (all page/action/API usage events)
+   - `TblTrnRBACUnauthAccess` (unauthorized attempts)
+   - `TblTrnRBACSecurityIncident` (breach/suspicious incidents)
    - `TblTrnRBACPermissionAudit` (all permission inserts/updates/deletes)
    - `TblTrnRBACUserReviewAudit` (review campaign audit trail)
 
@@ -113,12 +120,19 @@ This design is derived from the portal screens in `rbac-admin-portal.html`:
   - Requests are raised in `TblTrnRBACUserReactRequest`
   - Approval decisions are captured in `TblTrnRBACUserReactApproval`
   - Final reactivation actor/time is stored with `ReactivatedByUserUno`, `ReactivatedOn`
+  - Expired/reactivated lifecycle is stored in separate table `TblTrnRBACUserExpiryHist`
 - Email domain controls:
   - User create/update is validated against `TblMstRBACAllowedEmailDomain`
   - Trigger `TRG_MstUser_ValEmailDomain` blocks non-whitelisted domains
 - Permission change auditing:
   - `TRG_TrnRBACPermAudit` writes every permission `INSERT/UPDATE/DELETE` to `TblTrnRBACPermissionAudit`
   - captures old/new values, action type, changed timestamp and actor text (`ChangedBy`)
+- Unauthorized/breach monitoring:
+  - `TRG_TrnUserAct_Unauth` records unauthorized activity from `TblTrnRBACUserActivity` into `TblTrnRBACUnauthAccess`
+  - It raises `TblTrnRBACSecurityIncident` (e.g., brute-force pattern) when threshold is crossed
+- Usage statistics:
+  - `VRBACUserUsageDailyStat` gives user/page/action daily usage counts
+  - `VRBACAppUsageDailyStat` gives application-level daily usage and distinct-user counts
 - For UI language selection:
   - Show `*Ar` values when language = Arabic
   - Fallback to `*En` when Arabic value is null
