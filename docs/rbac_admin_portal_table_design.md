@@ -10,37 +10,44 @@ This design is derived from the portal screens in `rbac-admin-portal.html`:
 - User Groups + Group Module Access
 - User Master + User–Role Mapping
 
+## Naming convention applied
+
+- Master tables: `TblMstRBAC...`
+- Transaction tables: `TblTrnRBAC...`
+- Primary keys: `...Uno` (example: `UserUno`, `RoleUno`, `PermissionUno`)
+- Every table has an identity primary key.
+
 ## Main tables
 
 1. **Permission catalog**
-   - `rbac_module`
-   - `rbac_page`
-   - `rbac_action`
+   - `TblMstRBACModule`
+   - `TblMstRBACPage`
+   - `TblMstRBACAction`
 
 2. **Role model**
-   - `rbac_role`
-   - `rbac_role_permission`
-   - `rbac_role_country_scope`
-   - `rbac_role_embassy_scope`
+   - `TblMstRBACRole`
+   - `TblTrnRBACPermission`
+   - `TblTrnRBACRoleCountryScope`
+   - `TblTrnRBACRoleEmbassyScope`
 
 3. **User model**
-   - `rbac_user_account`
-   - `rbac_user_role`
+   - `TblMstRBACUser`
+   - `TblTrnRBACUserRole`
 
 4. **Group-based access**
-   - `rbac_user_group`
-   - `rbac_group_membership`
-   - `rbac_group_role`
-   - `rbac_group_permission`
+   - `TblMstRBACUserGroup`
+   - `TblTrnRBACGroupMembership`
+   - `TblTrnRBACGroupRole`
+   - `TblTrnRBACPermission` (for `GranteeTypeCd='GROUP'`)
 
 5. **Reference/master**
-   - `rbac_company`
-   - `rbac_department`
-   - `rbac_country`
-   - `rbac_embassy`
+   - `TblMstRBACCompany`
+   - `TblMstRBACDepartment`
+   - `TblMstRBACCountry`
+   - `TblMstRBACEmbassy`
 
 6. **Audit**
-   - `rbac_audit_log`
+   - `TblTrnRBACAuditLog`
 
 ## Access models covered
 
@@ -50,12 +57,14 @@ This design is derived from the portal screens in `rbac-admin-portal.html`:
 
 ## Notes for implementation
 
-- `group_permission` is optional but useful when group access is configured directly in the Group Module Access screen (without creating many role variants).
-- If your org chart is external, populate `rbac_group_membership` by sync job (e.g., LDAP/HRMS import).
-- Effective permissions can be read from `v_rbac_effective_user_action`.
+- `TblTrnRBACPermission` handles both role and group permissions:
+  - `GranteeTypeCd='ROLE'` + `RoleUno`
+  - `GranteeTypeCd='GROUP'` + `UserGroupUno`
+- If your org chart is external, populate `TblTrnRBACGroupMembership` by sync job (e.g., LDAP/HRMS import).
+- Effective permissions can be read from `VRBACEffectiveUserAction`.
 - Geo restrictions should be enforced in application query filters using:
-  - `rbac_role_country_scope`
-  - `rbac_role_embassy_scope`
+  - `TblTrnRBACRoleCountryScope`
+  - `TblTrnRBACRoleEmbassyScope`
 
 ## DDL script
 
