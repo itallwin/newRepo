@@ -17,6 +17,16 @@ This design is derived from the portal screens in `rbac-admin-portal.html`:
 - Primary keys: `...Uno` (example: `UserUno`, `RoleUno`, `PermissionUno`)
 - Every table has an identity primary key.
 
+## Bilingual support (English + Arabic)
+
+- English text columns use suffix `En` (type: `VARCHAR2`)
+- Arabic text columns use suffix `Ar` (type: `NVARCHAR2`)
+- Implemented on all display/catalog fields, including:
+  - Company / Department / Country / Embassy names
+  - Module / Page / Action / Role names and descriptions
+  - User Group names and descriptions
+  - User first/last name and designation
+
 ## Main tables
 
 1. **Permission catalog**
@@ -60,6 +70,9 @@ This design is derived from the portal screens in `rbac-admin-portal.html`:
 - `TblTrnRBACPermission` handles both role and group permissions:
   - `GranteeTypeCd='ROLE'` + `RoleUno`
   - `GranteeTypeCd='GROUP'` + `UserGroupUno`
+- For UI language selection:
+  - Show `*Ar` values when language = Arabic
+  - Fallback to `*En` when Arabic value is null
 - If your org chart is external, populate `TblTrnRBACGroupMembership` by sync job (e.g., LDAP/HRMS import).
 - Effective permissions can be read from `VRBACEffectiveUserAction`.
 - Geo restrictions should be enforced in application query filters using:
