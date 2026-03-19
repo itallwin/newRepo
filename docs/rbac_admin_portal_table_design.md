@@ -1,4 +1,4 @@
-# RBAC Admin Portal table design (Oracle)
+# RBAC Admin Portal table design (Oracle + PostgreSQL)
 
 This design is derived from the portal screens in `rbac-admin-portal.html`:
 
@@ -147,5 +147,9 @@ This design is derived from the portal screens in `rbac-admin-portal.html`:
 Use:
 
 `db/oracle/rbac_admin_portal_schema.sql`
+
+PostgreSQL version:
+
+`db/postgres/rbac_admin_portal_schema.sql`
 
 Run with a privileged schema user (or adapt tablespace/storage clauses for your environment).
