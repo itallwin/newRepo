@@ -21,6 +21,9 @@ This design is derived from the portal screens in `rbac-admin-portal.html`:
   - `EnteredOn`, `EnteredBy`
   - `ModifiedOn`, `ModifiedBy`
   - `DeletedOn`, `DeletedBy`
+- Inactivation/activation lifecycle fields use `...On` naming:
+  - `InactiveOn`, `InactivatedOn`, `InactivatedBy`
+  - `ActivatedOn`, `ActivatedBy`
 
 ## Bilingual support (English + Arabic)
 
@@ -49,6 +52,8 @@ This design is derived from the portal screens in `rbac-admin-portal.html`:
    - `TblMstRBACUser`
    - `TblTrnRBACUserRole`
    - `TblMstRBACAllowedEmailDomain` (email whitelist)
+   - `TblTrnRBACUserReactRequest` (reactivation request)
+   - `TblTrnRBACUserReactApproval` (reactivation approval steps)
    - User org links: `CompanyUno`, `DepartmentUno`, `DivisionUno`, `SectionUno`
    - Compliance:
      - Department + Division mandatory, Section optional
@@ -104,6 +109,10 @@ This design is derived from the portal screens in `rbac-admin-portal.html`:
   - `TblMstRBACUser` has failed-attempt lock controls (`FailedPasswordAttemptCount`, `IsAccountLocked`, `AccountLockedOn`)
   - `CK_MstUser_LockRule` enforces lock when failed attempts are 3 or more
   - Password history is recorded in `TblTrnRBACUserPasswordHistory`; enforce "last 5" at app/service layer or with scheduled purge job
+- Reactivation workflow:
+  - Requests are raised in `TblTrnRBACUserReactRequest`
+  - Approval decisions are captured in `TblTrnRBACUserReactApproval`
+  - Final reactivation actor/time is stored with `ReactivatedByUserUno`, `ReactivatedOn`
 - Email domain controls:
   - User create/update is validated against `TblMstRBACAllowedEmailDomain`
   - Trigger `TRG_MstUser_ValEmailDomain` blocks non-whitelisted domains
