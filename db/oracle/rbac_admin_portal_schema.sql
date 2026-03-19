@@ -671,7 +671,7 @@ CREATE TABLE TblTrnRBACPermission (
     RoleUno             NUMBER,
     UserGroupUno        NUMBER,
     ActionUno           NUMBER NOT NULL,
-    GrantFlag           CHAR(1) DEFAULT 'Y' NOT NULL,
+    GrantAcess           CHAR(1) DEFAULT 'Y' NOT NULL,
     GrantedAt           TIMESTAMP(6) DEFAULT SYSTIMESTAMP NOT NULL,
     GrantedBy           VARCHAR2(128),
     IsActive            NUMBER(1) DEFAULT 1 NOT NULL,
@@ -685,7 +685,7 @@ CREATE TABLE TblTrnRBACPermission (
     CONSTRAINT FK_TrnPerm_Group FOREIGN KEY (UserGroupUno) REFERENCES TblMstRBACUserGroup(UserGroupUno),
     CONSTRAINT FK_TrnPerm_Action FOREIGN KEY (ActionUno) REFERENCES TblMstRBACAction(ActionUno),
     CONSTRAINT CK_TrnPerm_Grantee CHECK (GranteeTypeCode IN ('ROLE', 'GROUP')),
-    CONSTRAINT CK_TrnPerm_GrantFlag CHECK (GrantFlag IN ('Y', 'N')),
+    CONSTRAINT CK_TrnPerm_GrantAcess CHECK (GrantAcess IN ('Y', 'N')),
     CONSTRAINT CK_TrnPerm_GranteeRef CHECK (
         (GranteeTypeCode = 'ROLE' AND RoleUno IS NOT NULL AND UserGroupUno IS NULL) OR
         (GranteeTypeCode = 'GROUP' AND UserGroupUno IS NOT NULL AND RoleUno IS NULL)
@@ -710,14 +710,14 @@ CREATE TABLE TblTrnRBACPermissionAudit (
     OldRoleUno          NUMBER,
     OldUserGroupUno     NUMBER,
     OldActionUno        NUMBER,
-    OldGrantFlag        CHAR(1),
+    OldGrantAcess        CHAR(1),
     OldIsActive         NUMBER(1),
     OldDeletedOn        TIMESTAMP(6),
     NewGranteeTypeCode  VARCHAR2(20),
     NewRoleUno          NUMBER,
     NewUserGroupUno     NUMBER,
     NewActionUno        NUMBER,
-    NewGrantFlag        CHAR(1),
+    NewGrantAcess        CHAR(1),
     NewIsActive         NUMBER(1),
     NewDeletedOn        TIMESTAMP(6),
     IsActive            NUMBER(1) DEFAULT 1 NOT NULL,
@@ -729,8 +729,8 @@ CREATE TABLE TblTrnRBACPermissionAudit (
     DeletedBy           VARCHAR2(128),
     CONSTRAINT FK_TrnPermAudit_User FOREIGN KEY (ChangedByUserUno) REFERENCES TblMstRBACUser(UserUno),
     CONSTRAINT CK_TrnPermAudit_Action CHECK (AuditActionCode IN ('INSERT', 'UPDATE', 'DELETE')),
-    CONSTRAINT CK_TrnPermAudit_GOld CHECK (OldGrantFlag IS NULL OR OldGrantFlag IN ('Y', 'N')),
-    CONSTRAINT CK_TrnPermAudit_GNew CHECK (NewGrantFlag IS NULL OR NewGrantFlag IN ('Y', 'N')),
+    CONSTRAINT CK_TrnPermAudit_GOld CHECK (OldGrantAcess IS NULL OR OldGrantAcess IN ('Y', 'N')),
+    CONSTRAINT CK_TrnPermAudit_GNew CHECK (NewGrantAcess IS NULL OR NewGrantAcess IN ('Y', 'N')),
     CONSTRAINT CK_TrnPermAudit_IAOld CHECK (OldIsActive IS NULL OR OldIsActive IN (0, 1)),
     CONSTRAINT CK_TrnPermAudit_IANew CHECK (NewIsActive IS NULL OR NewIsActive IN (0, 1)),
     CONSTRAINT CK_TrnPermAudit_IsActive CHECK (IsActive IN (0, 1))
@@ -761,16 +761,16 @@ BEGIN
 
     INSERT INTO TblTrnRBACPermissionAudit (
         PermissionUno, AuditActionCode, ChangedOn, ChangedBy,
-        OldGranteeTypeCode, OldRoleUno, OldUserGroupUno, OldActionUno, OldGrantFlag, OldIsActive, OldDeletedOn,
-        NewGranteeTypeCode, NewRoleUno, NewUserGroupUno, NewActionUno, NewGrantFlag, NewIsActive, NewDeletedOn,
+        OldGranteeTypeCode, OldRoleUno, OldUserGroupUno, OldActionUno, OldGrantAcess, OldIsActive, OldDeletedOn,
+        NewGranteeTypeCode, NewRoleUno, NewUserGroupUno, NewActionUno, NewGrantAcess, NewIsActive, NewDeletedOn,
         IsActive, EnteredOn, EnteredBy, ModifiedOn, ModifiedBy
     ) VALUES (
         CASE WHEN INSERTING THEN :NEW.PermissionUno ELSE :OLD.PermissionUno END,
         VActionCode,
         SYSTIMESTAMP,
         VChangedBy,
-        :OLD.GranteeTypeCode, :OLD.RoleUno, :OLD.UserGroupUno, :OLD.ActionUno, :OLD.GrantFlag, :OLD.IsActive, :OLD.DeletedOn,
-        :NEW.GranteeTypeCode, :NEW.RoleUno, :NEW.UserGroupUno, :NEW.ActionUno, :NEW.GrantFlag, :NEW.IsActive, :NEW.DeletedOn,
+        :OLD.GranteeTypeCode, :OLD.RoleUno, :OLD.UserGroupUno, :OLD.ActionUno, :OLD.GrantAcess, :OLD.IsActive, :OLD.DeletedOn,
+        :NEW.GranteeTypeCode, :NEW.RoleUno, :NEW.UserGroupUno, :NEW.ActionUno, :NEW.GrantAcess, :NEW.IsActive, :NEW.DeletedOn,
         1,
         SYSTIMESTAMP,
         VChangedBy,
@@ -830,7 +830,7 @@ WHERE U.IsActive = 1
   AND UR.DeletedOn IS NULL
   AND P.IsActive = 1
   AND P.DeletedOn IS NULL
-  AND P.GrantFlag = 'Y'
+  AND P.GrantAcess = 'Y'
   AND (UR.ValidTo IS NULL OR UR.ValidTo >= TRUNC(SYSDATE))
 
 UNION ALL
@@ -851,7 +851,7 @@ WHERE GM.IsActive = 1
   AND GR.DeletedOn IS NULL
   AND P.IsActive = 1
   AND P.DeletedOn IS NULL
-  AND P.GrantFlag = 'Y'
+  AND P.GrantAcess = 'Y'
   AND (GM.ValidTo IS NULL OR GM.ValidTo >= TRUNC(SYSDATE))
 
 UNION ALL
@@ -868,7 +868,7 @@ WHERE GM.IsActive = 1
   AND GM.DeletedOn IS NULL
   AND P.IsActive = 1
   AND P.DeletedOn IS NULL
-  AND P.GrantFlag = 'Y'
+  AND P.GrantAcess = 'Y'
   AND (GM.ValidTo IS NULL OR GM.ValidTo >= TRUNC(SYSDATE));
 
 -- End of schema
