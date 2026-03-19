@@ -16,6 +16,11 @@ This design is derived from the portal screens in `rbac-admin-portal.html`:
 - Transaction tables: `TblTrnRBAC...`
 - Primary keys: `...Uno` (example: `UserUno`, `RoleUno`, `PermissionUno`)
 - Every table has an identity primary key.
+- All tables include `IsActive NUMBER(1)` (1 = active, 0 = inactive).
+- Standard audit fields are:
+  - `EnteredOn`, `EnteredBy`
+  - `ModifiedOn`, `ModifiedBy`
+  - `DeletedOn`, `DeletedBy`
 
 ## Bilingual support (English + Arabic)
 
@@ -70,6 +75,10 @@ This design is derived from the portal screens in `rbac-admin-portal.html`:
 - `TblTrnRBACPermission` handles both role and group permissions:
   - `GranteeTypeCd='ROLE'` + `RoleUno`
   - `GranteeTypeCd='GROUP'` + `UserGroupUno`
+- `StatusCd` has been replaced with `IsActive` across the schema.
+- Roles are soft-delete friendly:
+  - active uniqueness is enforced with function-based unique indexes on `RoleCode` and `RoleNameEn` only when `DeletedOn IS NULL`
+  - this allows deleting a role and re-creating the same role code/name later
 - For UI language selection:
   - Show `*Ar` values when language = Arabic
   - Fallback to `*En` when Arabic value is null
