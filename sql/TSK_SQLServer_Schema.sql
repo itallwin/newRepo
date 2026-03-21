@@ -472,6 +472,137 @@ ON dbo.TblMstTSKRolePermission (TenantUno, RoleId, ScreenId)
 WHERE IsDeleted = 0;
 GO
 
+/* Additional uniqueness for duplicate prevention (soft-delete aware) */
+CREATE UNIQUE INDEX UX_TblMstTSKTenant_TenantNameEn_Active
+ON dbo.TblMstTSKTenant (TenantNameEn)
+WHERE IsDeleted = 0;
+GO
+CREATE UNIQUE INDEX UX_TblMstTSKTenant_TenantNameAr_Active
+ON dbo.TblMstTSKTenant (TenantNameAr)
+WHERE IsDeleted = 0;
+GO
+
+CREATE UNIQUE INDEX UX_TblMstTSKCompany_Tenant_CompanyNameEn_Active
+ON dbo.TblMstTSKCompany (TenantUno, CompanyNameEn)
+WHERE IsDeleted = 0;
+GO
+CREATE UNIQUE INDEX UX_TblMstTSKCompany_Tenant_CompanyNameAr_Active
+ON dbo.TblMstTSKCompany (TenantUno, CompanyNameAr)
+WHERE IsDeleted = 0;
+GO
+
+CREATE UNIQUE INDEX UX_TblMstTSKBranch_Tenant_Company_BranchNameEn_Active
+ON dbo.TblMstTSKBranch (TenantUno, CompanyId, BranchNameEn)
+WHERE IsDeleted = 0;
+GO
+CREATE UNIQUE INDEX UX_TblMstTSKBranch_Tenant_Company_BranchNameAr_Active
+ON dbo.TblMstTSKBranch (TenantUno, CompanyId, BranchNameAr)
+WHERE IsDeleted = 0;
+GO
+
+CREATE UNIQUE INDEX UX_TblMstTSKDepartment_Tenant_Company_DepartmentNameEn_Active
+ON dbo.TblMstTSKDepartment (TenantUno, CompanyId, DepartmentNameEn)
+WHERE IsDeleted = 0;
+GO
+CREATE UNIQUE INDEX UX_TblMstTSKDepartment_Tenant_Company_DepartmentNameAr_Active
+ON dbo.TblMstTSKDepartment (TenantUno, CompanyId, DepartmentNameAr)
+WHERE IsDeleted = 0;
+GO
+
+CREATE UNIQUE INDEX UX_TblMstTSKRole_Tenant_RoleNameEn_Active
+ON dbo.TblMstTSKRole (TenantUno, RoleNameEn)
+WHERE IsDeleted = 0;
+GO
+CREATE UNIQUE INDEX UX_TblMstTSKRole_Tenant_RoleNameAr_Active
+ON dbo.TblMstTSKRole (TenantUno, RoleNameAr)
+WHERE IsDeleted = 0;
+GO
+
+CREATE UNIQUE INDEX UX_TblMstTSKUser_Tenant_EmployeeNo_Active
+ON dbo.TblMstTSKUser (TenantUno, EmployeeNo)
+WHERE IsDeleted = 0 AND EmployeeNo IS NOT NULL;
+GO
+CREATE UNIQUE INDEX UX_TblMstTSKUser_Tenant_MobileNo_Active
+ON dbo.TblMstTSKUser (TenantUno, MobileNo)
+WHERE IsDeleted = 0 AND MobileNo IS NOT NULL;
+GO
+
+CREATE UNIQUE INDEX UX_TblMstTSKTeam_Tenant_TeamNameEn_Active
+ON dbo.TblMstTSKTeam (TenantUno, TeamNameEn)
+WHERE IsDeleted = 0;
+GO
+CREATE UNIQUE INDEX UX_TblMstTSKTeam_Tenant_TeamNameAr_Active
+ON dbo.TblMstTSKTeam (TenantUno, TeamNameAr)
+WHERE IsDeleted = 0 AND TeamNameAr IS NOT NULL;
+GO
+
+CREATE UNIQUE INDEX UX_TblMstTSKProject_Tenant_ProjectNameEn_Active
+ON dbo.TblMstTSKProject (TenantUno, ProjectNameEn)
+WHERE IsDeleted = 0;
+GO
+CREATE UNIQUE INDEX UX_TblMstTSKProject_Tenant_ProjectNameAr_Active
+ON dbo.TblMstTSKProject (TenantUno, ProjectNameAr)
+WHERE IsDeleted = 0;
+GO
+
+CREATE UNIQUE INDEX UX_TblMstTSKTaskType_Tenant_TaskTypeNameEn_Active
+ON dbo.TblMstTSKTaskType (TenantUno, TaskTypeNameEn)
+WHERE IsDeleted = 0;
+GO
+CREATE UNIQUE INDEX UX_TblMstTSKTaskType_Tenant_TaskTypeNameAr_Active
+ON dbo.TblMstTSKTaskType (TenantUno, TaskTypeNameAr)
+WHERE IsDeleted = 0;
+GO
+
+CREATE UNIQUE INDEX UX_TblMstTSKPriority_Tenant_PriorityNameEn_Active
+ON dbo.TblMstTSKPriority (TenantUno, PriorityNameEn)
+WHERE IsDeleted = 0;
+GO
+CREATE UNIQUE INDEX UX_TblMstTSKPriority_Tenant_PriorityNameAr_Active
+ON dbo.TblMstTSKPriority (TenantUno, PriorityNameAr)
+WHERE IsDeleted = 0;
+GO
+
+CREATE UNIQUE INDEX UX_TblMstTSKStatus_Tenant_StatusNameEn_Active
+ON dbo.TblMstTSKStatus (TenantUno, StatusNameEn)
+WHERE IsDeleted = 0;
+GO
+CREATE UNIQUE INDEX UX_TblMstTSKStatus_Tenant_StatusNameAr_Active
+ON dbo.TblMstTSKStatus (TenantUno, StatusNameAr)
+WHERE IsDeleted = 0;
+GO
+
+CREATE UNIQUE INDEX UX_TblMstTSKCategory_Tenant_Parent_CategoryNameEn_Active
+ON dbo.TblMstTSKCategory (TenantUno, ParentCategoryId, CategoryNameEn)
+WHERE IsDeleted = 0;
+GO
+CREATE UNIQUE INDEX UX_TblMstTSKCategory_Tenant_Parent_CategoryNameAr_Active
+ON dbo.TblMstTSKCategory (TenantUno, ParentCategoryId, CategoryNameAr)
+WHERE IsDeleted = 0;
+GO
+
+CREATE UNIQUE INDEX UX_TblMstTSKTag_Tenant_TagNameEn_Active
+ON dbo.TblMstTSKTag (TenantUno, TagNameEn)
+WHERE IsDeleted = 0;
+GO
+CREATE UNIQUE INDEX UX_TblMstTSKTag_Tenant_TagNameAr_Active
+ON dbo.TblMstTSKTag (TenantUno, TagNameAr)
+WHERE IsDeleted = 0 AND TagNameAr IS NOT NULL;
+GO
+
+CREATE UNIQUE INDEX UX_TblMstTSKScreen_Tenant_ScreenNameEn_Active
+ON dbo.TblMstTSKScreen (TenantUno, ScreenNameEn)
+WHERE IsDeleted = 0;
+GO
+CREATE UNIQUE INDEX UX_TblMstTSKScreen_Tenant_ScreenNameAr_Active
+ON dbo.TblMstTSKScreen (TenantUno, ScreenNameAr)
+WHERE IsDeleted = 0;
+GO
+CREATE UNIQUE INDEX UX_TblMstTSKScreen_Tenant_RoutePath_Active
+ON dbo.TblMstTSKScreen (TenantUno, RoutePath)
+WHERE IsDeleted = 0 AND RoutePath IS NOT NULL;
+GO
+
 /* =========================================================
    TRANSACTION SCREENS
    ========================================================= */
