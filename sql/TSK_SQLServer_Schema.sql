@@ -146,8 +146,12 @@ CREATE TABLE dbo.TblMstTSKUser (
     LoginName               VARCHAR(120) NOT NULL,
     FullNameEn              NVARCHAR(200) NOT NULL,
     FullNameAr              NVARCHAR(200) NULL,
+    JobTitleEn              NVARCHAR(120) NULL,
+    JobTitleAr              NVARCHAR(120) NULL,
     Email                   VARCHAR(254) NOT NULL,
     MobileNo                VARCHAR(30) NULL,
+    CurrentPresenceStatusCode VARCHAR(15) NOT NULL CONSTRAINT DF_TblMstTSKUser_CurrentPresenceStatusCode DEFAULT ('Offline'),
+    CapacityHoursPerWeek    DECIMAL(5,2) NOT NULL CONSTRAINT DF_TblMstTSKUser_CapacityHoursPerWeek DEFAULT (40),
     DepartmentId            BIGINT NULL,
     DefaultRoleId           BIGINT NULL,
     PreferredLanguageCode   VARCHAR(10) NOT NULL CONSTRAINT DF_TblMstTSKUser_PreferredLanguageCode DEFAULT ('en'),
@@ -161,6 +165,7 @@ CREATE TABLE dbo.TblMstTSKUser (
     ModifiedOnUtc           DATETIME2(3) NULL,
     ModifiedByUserId        BIGINT NULL,
     RowVer                  ROWVERSION NOT NULL,
+    CONSTRAINT CK_TblMstTSKUser_CapacityHoursPerWeek CHECK (CapacityHoursPerWeek > 0 AND CapacityHoursPerWeek <= 168),
     CONSTRAINT FK_TblMstTSKUser_Tenant FOREIGN KEY (TenantId) REFERENCES dbo.TblMstTSKTenant (TenantId),
     CONSTRAINT FK_TblMstTSKUser_Department FOREIGN KEY (DepartmentId) REFERENCES dbo.TblMstTSKDepartment (DepartmentId),
     CONSTRAINT FK_TblMstTSKUser_DefaultRole FOREIGN KEY (DefaultRoleId) REFERENCES dbo.TblMstTSKRole (RoleId)
@@ -175,6 +180,56 @@ ON dbo.TblMstTSKUser (TenantId, Email)
 WHERE IsDeleted = 0;
 GO
 
+CREATE TABLE dbo.TblMstTSKTeam (
+    TeamId                BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    TenantId              BIGINT NOT NULL,
+    TeamCode              VARCHAR(30) NOT NULL,
+    TeamNameEn            NVARCHAR(150) NOT NULL,
+    TeamNameAr            NVARCHAR(150) NULL,
+    DescriptionEn         NVARCHAR(500) NULL,
+    DescriptionAr         NVARCHAR(500) NULL,
+    IsActive              BIT NOT NULL CONSTRAINT DF_TblMstTSKTeam_IsActive DEFAULT (1),
+    IsDeleted             BIT NOT NULL CONSTRAINT DF_TblMstTSKTeam_IsDeleted DEFAULT (0),
+    CreatedOnUtc          DATETIME2(3) NOT NULL CONSTRAINT DF_TblMstTSKTeam_CreatedOnUtc DEFAULT (SYSUTCDATETIME()),
+    CreatedByUserId       BIGINT NULL,
+    ModifiedOnUtc         DATETIME2(3) NULL,
+    ModifiedByUserId      BIGINT NULL,
+    RowVer                ROWVERSION NOT NULL,
+    CONSTRAINT FK_TblMstTSKTeam_Tenant FOREIGN KEY (TenantId) REFERENCES dbo.TblMstTSKTenant (TenantId)
+);
+GO
+CREATE UNIQUE INDEX UX_TblMstTSKTeam_Tenant_TeamCode_Active
+ON dbo.TblMstTSKTeam (TenantId, TeamCode)
+WHERE IsDeleted = 0;
+GO
+
+CREATE TABLE dbo.TblMstTSKTeamMember (
+    TeamMemberId          BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    TenantId              BIGINT NOT NULL,
+    TeamId                BIGINT NOT NULL,
+    UserId                BIGINT NOT NULL,
+    MemberRoleCode        VARCHAR(30) NULL, -- Lead/Member/Observer
+    IsActive              BIT NOT NULL CONSTRAINT DF_TblMstTSKTeamMember_IsActive DEFAULT (1),
+    IsDeleted             BIT NOT NULL CONSTRAINT DF_TblMstTSKTeamMember_IsDeleted DEFAULT (0),
+    CreatedOnUtc          DATETIME2(3) NOT NULL CONSTRAINT DF_TblMstTSKTeamMember_CreatedOnUtc DEFAULT (SYSUTCDATETIME()),
+    CreatedByUserId       BIGINT NULL,
+    ModifiedOnUtc         DATETIME2(3) NULL,
+    ModifiedByUserId      BIGINT NULL,
+    RowVer                ROWVERSION NOT NULL,
+    CONSTRAINT FK_TblMstTSKTeamMember_Tenant FOREIGN KEY (TenantId) REFERENCES dbo.TblMstTSKTenant (TenantId),
+    CONSTRAINT FK_TblMstTSKTeamMember_Team FOREIGN KEY (TeamId) REFERENCES dbo.TblMstTSKTeam (TeamId),
+    CONSTRAINT FK_TblMstTSKTeamMember_User FOREIGN KEY (UserId) REFERENCES dbo.TblMstTSKUser (UserId)
+);
+GO
+CREATE UNIQUE INDEX UX_TblMstTSKTeamMember_UQ
+ON dbo.TblMstTSKTeamMember (TenantId, TeamId, UserId)
+WHERE IsDeleted = 0;
+GO
+CREATE INDEX IX_TblMstTSKTeamMember_Team
+ON dbo.TblMstTSKTeamMember (TenantId, TeamId, UserId)
+WHERE IsDeleted = 0;
+GO
+
 CREATE TABLE dbo.TblMstTSKProject (
     ProjectId            BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
     TenantId             BIGINT NOT NULL,
@@ -186,6 +241,11 @@ CREATE TABLE dbo.TblMstTSKProject (
     CompanyId            BIGINT NULL,
     DepartmentId         BIGINT NULL,
     ProjectManagerUserId BIGINT NULL,
+    PortfolioStatusCode  VARCHAR(20) NOT NULL CONSTRAINT DF_TblMstTSKProject_PortfolioStatusCode DEFAULT ('OnTrack'),
+    ProgressPercent      DECIMAL(5,2) NOT NULL CONSTRAINT DF_TblMstTSKProject_ProgressPercent DEFAULT (0),
+    RiskNoteEn           NVARCHAR(1000) NULL,
+    RiskNoteAr           NVARCHAR(1000) NULL,
+    HealthReviewedOnUtc  DATETIME2(3) NULL,
     PlannedStartUtc      DATETIME2(3) NULL,
     PlannedEndUtc        DATETIME2(3) NULL,
     IsActive             BIT NOT NULL CONSTRAINT DF_TblMstTSKProject_IsActive DEFAULT (1),
@@ -195,6 +255,7 @@ CREATE TABLE dbo.TblMstTSKProject (
     ModifiedOnUtc        DATETIME2(3) NULL,
     ModifiedByUserId     BIGINT NULL,
     RowVer               ROWVERSION NOT NULL,
+    CONSTRAINT CK_TblMstTSKProject_ProgressPercent CHECK (ProgressPercent >= 0 AND ProgressPercent <= 100),
     CONSTRAINT FK_TblMstTSKProject_Tenant FOREIGN KEY (TenantId) REFERENCES dbo.TblMstTSKTenant (TenantId),
     CONSTRAINT FK_TblMstTSKProject_Company FOREIGN KEY (CompanyId) REFERENCES dbo.TblMstTSKCompany (CompanyId),
     CONSTRAINT FK_TblMstTSKProject_Department FOREIGN KEY (DepartmentId) REFERENCES dbo.TblMstTSKDepartment (DepartmentId),
@@ -384,6 +445,7 @@ CREATE TABLE dbo.TblTrnTSKTask (
     TenantId              BIGINT NOT NULL,
     TaskNo                VARCHAR(40) NOT NULL,
     ProjectId             BIGINT NOT NULL,
+    TeamId                BIGINT NULL,
     CategoryId            BIGINT NULL,
     TaskTypeId            BIGINT NOT NULL,
     PriorityId            BIGINT NOT NULL,
@@ -395,14 +457,22 @@ CREATE TABLE dbo.TblTrnTSKTask (
     TaskTitleAr           NVARCHAR(300) NULL,
     TaskDescriptionEn     NVARCHAR(MAX) NULL,
     TaskDescriptionAr     NVARCHAR(MAX) NULL,
+    TaskGroupEn           NVARCHAR(150) NULL,
+    TaskGroupAr           NVARCHAR(150) NULL,
     PlannedStartUtc       DATETIME2(3) NULL,
-    DueUtc                DATETIME2(3) NULL,
+    DueUtc                DATETIME2(3) NOT NULL,
     ActualStartUtc        DATETIME2(3) NULL,
     ActualEndUtc          DATETIME2(3) NULL,
+    CompletedOnUtc        DATETIME2(3) NULL,
     EstimatedHours        DECIMAL(10,2) NULL,
     ActualHours           DECIMAL(10,2) NULL,
     CompletedPercent      DECIMAL(5,2) NOT NULL CONSTRAINT DF_TblTrnTSKTask_CompletedPercent DEFAULT (0),
     IsMilestone           BIT NOT NULL CONSTRAINT DF_TblTrnTSKTask_IsMilestone DEFAULT (0),
+    IsArchived            BIT NOT NULL CONSTRAINT DF_TblTrnTSKTask_IsArchived DEFAULT (0),
+    ArchivedOnUtc         DATETIME2(3) NULL,
+    ArchivedByUserId      BIGINT NULL,
+    ArchiveReasonEn       NVARCHAR(1000) NULL,
+    ArchiveReasonAr       NVARCHAR(1000) NULL,
     IsActive              BIT NOT NULL CONSTRAINT DF_TblTrnTSKTask_IsActive DEFAULT (1),
     IsDeleted             BIT NOT NULL CONSTRAINT DF_TblTrnTSKTask_IsDeleted DEFAULT (0),
     CreatedOnUtc          DATETIME2(3) NOT NULL CONSTRAINT DF_TblTrnTSKTask_CreatedOnUtc DEFAULT (SYSUTCDATETIME()),
@@ -413,13 +483,15 @@ CREATE TABLE dbo.TblTrnTSKTask (
     CONSTRAINT CK_TblTrnTSKTask_CompletedPercent CHECK (CompletedPercent >= 0 AND CompletedPercent <= 100),
     CONSTRAINT FK_TblTrnTSKTask_Tenant FOREIGN KEY (TenantId) REFERENCES dbo.TblMstTSKTenant (TenantId),
     CONSTRAINT FK_TblTrnTSKTask_Project FOREIGN KEY (ProjectId) REFERENCES dbo.TblMstTSKProject (ProjectId),
+    CONSTRAINT FK_TblTrnTSKTask_Team FOREIGN KEY (TeamId) REFERENCES dbo.TblMstTSKTeam (TeamId),
     CONSTRAINT FK_TblTrnTSKTask_Category FOREIGN KEY (CategoryId) REFERENCES dbo.TblMstTSKCategory (CategoryId),
     CONSTRAINT FK_TblTrnTSKTask_TaskType FOREIGN KEY (TaskTypeId) REFERENCES dbo.TblMstTSKTaskType (TaskTypeId),
     CONSTRAINT FK_TblTrnTSKTask_Priority FOREIGN KEY (PriorityId) REFERENCES dbo.TblMstTSKPriority (PriorityId),
     CONSTRAINT FK_TblTrnTSKTask_Status FOREIGN KEY (StatusId) REFERENCES dbo.TblMstTSKStatus (StatusId),
     CONSTRAINT FK_TblTrnTSKTask_ParentTask FOREIGN KEY (ParentTaskId) REFERENCES dbo.TblTrnTSKTask (TaskId),
     CONSTRAINT FK_TblTrnTSKTask_RequestedBy FOREIGN KEY (RequestedByUserId) REFERENCES dbo.TblMstTSKUser (UserId),
-    CONSTRAINT FK_TblTrnTSKTask_Owner FOREIGN KEY (OwnerUserId) REFERENCES dbo.TblMstTSKUser (UserId)
+    CONSTRAINT FK_TblTrnTSKTask_Owner FOREIGN KEY (OwnerUserId) REFERENCES dbo.TblMstTSKUser (UserId),
+    CONSTRAINT FK_TblTrnTSKTask_ArchivedBy FOREIGN KEY (ArchivedByUserId) REFERENCES dbo.TblMstTSKUser (UserId)
 );
 GO
 CREATE UNIQUE INDEX UX_TblTrnTSKTask_Tenant_TaskNo_Active
@@ -431,9 +503,19 @@ ON dbo.TblTrnTSKTask (TenantId, StatusId, DueUtc)
 INCLUDE (PriorityId, OwnerUserId, ProjectId, CompletedPercent)
 WHERE IsDeleted = 0;
 GO
+CREATE INDEX IX_TblTrnTSKTask_BoardLane
+ON dbo.TblTrnTSKTask (TenantId, StatusId, DueUtc, PriorityId)
+INCLUDE (ProjectId, OwnerUserId, TaskTitleEn, CompletedPercent)
+WHERE IsDeleted = 0 AND IsArchived = 0;
+GO
 CREATE INDEX IX_TblTrnTSKTask_Tenant_Project
 ON dbo.TblTrnTSKTask (TenantId, ProjectId, CreatedOnUtc)
 WHERE IsDeleted = 0;
+GO
+CREATE INDEX IX_TblTrnTSKTask_Team_Due
+ON dbo.TblTrnTSKTask (TenantId, TeamId, DueUtc)
+INCLUDE (StatusId, PriorityId, OwnerUserId, TaskTitleEn)
+WHERE IsDeleted = 0 AND IsArchived = 0;
 GO
 
 CREATE TABLE dbo.TblTrnTSKTaskAssignment (
@@ -463,6 +545,33 @@ WHERE IsDeleted = 0;
 GO
 CREATE INDEX IX_TblTrnTSKTaskAssignment_Assignee
 ON dbo.TblTrnTSKTaskAssignment (TenantId, AssigneeUserId, IsPrimaryAssignee)
+WHERE IsDeleted = 0;
+GO
+
+CREATE TABLE dbo.TblTrnTSKTaskSubtask (
+    TaskSubtaskId          BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    TenantId               BIGINT NOT NULL,
+    TaskId                 BIGINT NOT NULL,
+    SubtaskTitleEn         NVARCHAR(300) NOT NULL,
+    SubtaskTitleAr         NVARCHAR(300) NULL,
+    DisplayOrder           INT NOT NULL CONSTRAINT DF_TblTrnTSKTaskSubtask_DisplayOrder DEFAULT (0),
+    IsCompleted            BIT NOT NULL CONSTRAINT DF_TblTrnTSKTaskSubtask_IsCompleted DEFAULT (0),
+    CompletedByUserId      BIGINT NULL,
+    CompletedOnUtc         DATETIME2(3) NULL,
+    IsActive               BIT NOT NULL CONSTRAINT DF_TblTrnTSKTaskSubtask_IsActive DEFAULT (1),
+    IsDeleted              BIT NOT NULL CONSTRAINT DF_TblTrnTSKTaskSubtask_IsDeleted DEFAULT (0),
+    CreatedOnUtc           DATETIME2(3) NOT NULL CONSTRAINT DF_TblTrnTSKTaskSubtask_CreatedOnUtc DEFAULT (SYSUTCDATETIME()),
+    CreatedByUserId        BIGINT NULL,
+    ModifiedOnUtc          DATETIME2(3) NULL,
+    ModifiedByUserId       BIGINT NULL,
+    RowVer                 ROWVERSION NOT NULL,
+    CONSTRAINT FK_TblTrnTSKTaskSubtask_Tenant FOREIGN KEY (TenantId) REFERENCES dbo.TblMstTSKTenant (TenantId),
+    CONSTRAINT FK_TblTrnTSKTaskSubtask_Task FOREIGN KEY (TaskId) REFERENCES dbo.TblTrnTSKTask (TaskId),
+    CONSTRAINT FK_TblTrnTSKTaskSubtask_CompletedBy FOREIGN KEY (CompletedByUserId) REFERENCES dbo.TblMstTSKUser (UserId)
+);
+GO
+CREATE INDEX IX_TblTrnTSKTaskSubtask_Task
+ON dbo.TblTrnTSKTaskSubtask (TenantId, TaskId, DisplayOrder)
 WHERE IsDeleted = 0;
 GO
 
@@ -551,6 +660,11 @@ CREATE TABLE dbo.TblTrnTSKTaskAttachment (
     ModifiedOnUtc         DATETIME2(3) NULL,
     ModifiedByUserId      BIGINT NULL,
     RowVer                ROWVERSION NOT NULL,
+    CONSTRAINT CK_TblTrnTSKTaskAttachment_FileSize CHECK (FileSizeBytes IS NULL OR FileSizeBytes <= 10485760),
+    CONSTRAINT CK_TblTrnTSKTaskAttachment_FileExtension CHECK (
+        FileExtension IS NULL
+        OR UPPER(FileExtension) IN ('SVG', '.SVG', 'JPG', '.JPG', 'JPEG', '.JPEG', 'PNG', '.PNG', 'PDF', '.PDF', 'DOC', '.DOC')
+    ),
     CONSTRAINT FK_TblTrnTSKTaskAttachment_Tenant FOREIGN KEY (TenantId) REFERENCES dbo.TblMstTSKTenant (TenantId),
     CONSTRAINT FK_TblTrnTSKTaskAttachment_Task FOREIGN KEY (TaskId) REFERENCES dbo.TblTrnTSKTask (TaskId),
     CONSTRAINT FK_TblTrnTSKTaskAttachment_CreatedBy FOREIGN KEY (CreatedByUserId) REFERENCES dbo.TblMstTSKUser (UserId)
@@ -744,6 +858,214 @@ CREATE TABLE dbo.TblTrnTSKNotification (
 GO
 CREATE INDEX IX_TblTrnTSKNotification_User_IsRead_CreatedOn
 ON dbo.TblTrnTSKNotification (TenantId, UserId, IsRead, CreatedOnUtc)
+WHERE IsDeleted = 0;
+GO
+
+CREATE TABLE dbo.TblTrnTSKProjectMember (
+    ProjectMemberId        BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    TenantId               BIGINT NOT NULL,
+    ProjectId              BIGINT NOT NULL,
+    UserId                 BIGINT NOT NULL,
+    MemberRoleCode         VARCHAR(30) NULL,
+    AllocationPercent      DECIMAL(5,2) NOT NULL CONSTRAINT DF_TblTrnTSKProjectMember_AllocationPercent DEFAULT (100),
+    IsActive               BIT NOT NULL CONSTRAINT DF_TblTrnTSKProjectMember_IsActive DEFAULT (1),
+    IsDeleted              BIT NOT NULL CONSTRAINT DF_TblTrnTSKProjectMember_IsDeleted DEFAULT (0),
+    CreatedOnUtc           DATETIME2(3) NOT NULL CONSTRAINT DF_TblTrnTSKProjectMember_CreatedOnUtc DEFAULT (SYSUTCDATETIME()),
+    CreatedByUserId        BIGINT NULL,
+    ModifiedOnUtc          DATETIME2(3) NULL,
+    ModifiedByUserId       BIGINT NULL,
+    RowVer                 ROWVERSION NOT NULL,
+    CONSTRAINT CK_TblTrnTSKProjectMember_AllocationPercent CHECK (AllocationPercent > 0 AND AllocationPercent <= 100),
+    CONSTRAINT FK_TblTrnTSKProjectMember_Tenant FOREIGN KEY (TenantId) REFERENCES dbo.TblMstTSKTenant (TenantId),
+    CONSTRAINT FK_TblTrnTSKProjectMember_Project FOREIGN KEY (ProjectId) REFERENCES dbo.TblMstTSKProject (ProjectId),
+    CONSTRAINT FK_TblTrnTSKProjectMember_User FOREIGN KEY (UserId) REFERENCES dbo.TblMstTSKUser (UserId)
+);
+GO
+CREATE UNIQUE INDEX UX_TblTrnTSKProjectMember_UQ
+ON dbo.TblTrnTSKProjectMember (TenantId, ProjectId, UserId)
+WHERE IsDeleted = 0;
+GO
+CREATE INDEX IX_TblTrnTSKProjectMember_User
+ON dbo.TblTrnTSKProjectMember (TenantId, UserId, ProjectId)
+WHERE IsDeleted = 0;
+GO
+
+CREATE TABLE dbo.TblTrnTSKTaskReassignment (
+    TaskReassignmentId     BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    TenantId               BIGINT NOT NULL,
+    TaskId                 BIGINT NOT NULL,
+    FromAssigneeUserId     BIGINT NULL,
+    ToAssigneeUserId       BIGINT NOT NULL,
+    ReasonEn               NVARCHAR(1000) NULL,
+    ReasonAr               NVARCHAR(1000) NULL,
+    ReassignedByUserId     BIGINT NULL,
+    ReassignedOnUtc        DATETIME2(3) NOT NULL CONSTRAINT DF_TblTrnTSKTaskReassignment_ReassignedOnUtc DEFAULT (SYSUTCDATETIME()),
+    IsActive               BIT NOT NULL CONSTRAINT DF_TblTrnTSKTaskReassignment_IsActive DEFAULT (1),
+    IsDeleted              BIT NOT NULL CONSTRAINT DF_TblTrnTSKTaskReassignment_IsDeleted DEFAULT (0),
+    CreatedOnUtc           DATETIME2(3) NOT NULL CONSTRAINT DF_TblTrnTSKTaskReassignment_CreatedOnUtc DEFAULT (SYSUTCDATETIME()),
+    CreatedByUserId        BIGINT NULL,
+    ModifiedOnUtc          DATETIME2(3) NULL,
+    ModifiedByUserId       BIGINT NULL,
+    RowVer                 ROWVERSION NOT NULL,
+    CONSTRAINT FK_TblTrnTSKTaskReassignment_Tenant FOREIGN KEY (TenantId) REFERENCES dbo.TblMstTSKTenant (TenantId),
+    CONSTRAINT FK_TblTrnTSKTaskReassignment_Task FOREIGN KEY (TaskId) REFERENCES dbo.TblTrnTSKTask (TaskId),
+    CONSTRAINT FK_TblTrnTSKTaskReassignment_FromAssignee FOREIGN KEY (FromAssigneeUserId) REFERENCES dbo.TblMstTSKUser (UserId),
+    CONSTRAINT FK_TblTrnTSKTaskReassignment_ToAssignee FOREIGN KEY (ToAssigneeUserId) REFERENCES dbo.TblMstTSKUser (UserId),
+    CONSTRAINT FK_TblTrnTSKTaskReassignment_ReassignedBy FOREIGN KEY (ReassignedByUserId) REFERENCES dbo.TblMstTSKUser (UserId)
+);
+GO
+CREATE INDEX IX_TblTrnTSKTaskReassignment_Task
+ON dbo.TblTrnTSKTaskReassignment (TenantId, TaskId, ReassignedOnUtc)
+WHERE IsDeleted = 0;
+GO
+
+CREATE TABLE dbo.TblTrnTSKActivityFeed (
+    ActivityId             BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    TenantId               BIGINT NOT NULL,
+    ActivityTypeCode       VARCHAR(40) NOT NULL,
+    EntityTypeCode         VARCHAR(40) NOT NULL,
+    EntityId               BIGINT NULL,
+    TaskId                 BIGINT NULL,
+    ProjectId              BIGINT NULL,
+    ActorUserId            BIGINT NULL,
+    TargetUserId           BIGINT NULL,
+    ActivityTextEn         NVARCHAR(1000) NOT NULL,
+    ActivityTextAr         NVARCHAR(1000) NULL,
+    MetadataJson           NVARCHAR(MAX) NULL,
+    OccurredOnUtc          DATETIME2(3) NOT NULL CONSTRAINT DF_TblTrnTSKActivityFeed_OccurredOnUtc DEFAULT (SYSUTCDATETIME()),
+    IsActive               BIT NOT NULL CONSTRAINT DF_TblTrnTSKActivityFeed_IsActive DEFAULT (1),
+    IsDeleted              BIT NOT NULL CONSTRAINT DF_TblTrnTSKActivityFeed_IsDeleted DEFAULT (0),
+    CreatedOnUtc           DATETIME2(3) NOT NULL CONSTRAINT DF_TblTrnTSKActivityFeed_CreatedOnUtc DEFAULT (SYSUTCDATETIME()),
+    CreatedByUserId        BIGINT NULL,
+    ModifiedOnUtc          DATETIME2(3) NULL,
+    ModifiedByUserId       BIGINT NULL,
+    RowVer                 ROWVERSION NOT NULL,
+    CONSTRAINT FK_TblTrnTSKActivityFeed_Tenant FOREIGN KEY (TenantId) REFERENCES dbo.TblMstTSKTenant (TenantId),
+    CONSTRAINT FK_TblTrnTSKActivityFeed_Task FOREIGN KEY (TaskId) REFERENCES dbo.TblTrnTSKTask (TaskId),
+    CONSTRAINT FK_TblTrnTSKActivityFeed_Project FOREIGN KEY (ProjectId) REFERENCES dbo.TblMstTSKProject (ProjectId),
+    CONSTRAINT FK_TblTrnTSKActivityFeed_Actor FOREIGN KEY (ActorUserId) REFERENCES dbo.TblMstTSKUser (UserId),
+    CONSTRAINT FK_TblTrnTSKActivityFeed_Target FOREIGN KEY (TargetUserId) REFERENCES dbo.TblMstTSKUser (UserId)
+);
+GO
+CREATE INDEX IX_TblTrnTSKActivityFeed_Tenant_OccurredOn
+ON dbo.TblTrnTSKActivityFeed (TenantId, OccurredOnUtc)
+INCLUDE (ActivityTypeCode, TaskId, ProjectId, ActorUserId, ActivityTextEn)
+WHERE IsDeleted = 0;
+GO
+
+CREATE TABLE dbo.TblTrnTSKMemberPresenceLog (
+    PresenceLogId          BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    TenantId               BIGINT NOT NULL,
+    UserId                 BIGINT NOT NULL,
+    PresenceStatusCode     VARCHAR(15) NOT NULL, -- Online/Idle/Offline
+    SessionStartUtc        DATETIME2(3) NOT NULL,
+    SessionEndUtc          DATETIME2(3) NULL,
+    LastHeartbeatUtc       DATETIME2(3) NULL,
+    SourceTypeCode         VARCHAR(20) NULL,
+    IsActive               BIT NOT NULL CONSTRAINT DF_TblTrnTSKMemberPresenceLog_IsActive DEFAULT (1),
+    IsDeleted              BIT NOT NULL CONSTRAINT DF_TblTrnTSKMemberPresenceLog_IsDeleted DEFAULT (0),
+    CreatedOnUtc           DATETIME2(3) NOT NULL CONSTRAINT DF_TblTrnTSKMemberPresenceLog_CreatedOnUtc DEFAULT (SYSUTCDATETIME()),
+    CreatedByUserId        BIGINT NULL,
+    ModifiedOnUtc          DATETIME2(3) NULL,
+    ModifiedByUserId       BIGINT NULL,
+    RowVer                 ROWVERSION NOT NULL,
+    CONSTRAINT FK_TblTrnTSKMemberPresenceLog_Tenant FOREIGN KEY (TenantId) REFERENCES dbo.TblMstTSKTenant (TenantId),
+    CONSTRAINT FK_TblTrnTSKMemberPresenceLog_User FOREIGN KEY (UserId) REFERENCES dbo.TblMstTSKUser (UserId)
+);
+GO
+CREATE INDEX IX_TblTrnTSKMemberPresenceLog_User_Start
+ON dbo.TblTrnTSKMemberPresenceLog (TenantId, UserId, SessionStartUtc)
+WHERE IsDeleted = 0;
+GO
+
+CREATE TABLE dbo.TblTrnTSKDashboardKpiSnapshot (
+    DashboardKpiSnapshotId BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    TenantId               BIGINT NOT NULL,
+    SnapshotDateUtc        DATE NOT NULL,
+    PeriodTypeCode         VARCHAR(20) NOT NULL, -- Last7Days/Last30Days/ThisQuarter
+    TeamScopeCode          VARCHAR(30) NOT NULL, -- AllTeams/Development/Operations/Design
+    TotalTasks             INT NOT NULL CONSTRAINT DF_TblTrnTSKDashboardKpiSnapshot_TotalTasks DEFAULT (0),
+    CompletedTasks         INT NOT NULL CONSTRAINT DF_TblTrnTSKDashboardKpiSnapshot_CompletedTasks DEFAULT (0),
+    CompletionRatePercent  DECIMAL(5,2) NOT NULL CONSTRAINT DF_TblTrnTSKDashboardKpiSnapshot_CompletionRatePercent DEFAULT (0),
+    OverdueTasks           INT NOT NULL CONSTRAINT DF_TblTrnTSKDashboardKpiSnapshot_OverdueTasks DEFAULT (0),
+    AvgCompletionDays      DECIMAL(8,2) NULL,
+    ActiveMembers          INT NOT NULL CONSTRAINT DF_TblTrnTSKDashboardKpiSnapshot_ActiveMembers DEFAULT (0),
+    OnTimeDeliveryPercent  DECIMAL(5,2) NULL,
+    TeamVelocityPerWeek    DECIMAL(8,2) NULL,
+    AvgLoadPercent         DECIMAL(5,2) NULL,
+    ReassignedTasksCount   INT NOT NULL CONSTRAINT DF_TblTrnTSKDashboardKpiSnapshot_ReassignedTasksCount DEFAULT (0),
+    IsActive               BIT NOT NULL CONSTRAINT DF_TblTrnTSKDashboardKpiSnapshot_IsActive DEFAULT (1),
+    IsDeleted              BIT NOT NULL CONSTRAINT DF_TblTrnTSKDashboardKpiSnapshot_IsDeleted DEFAULT (0),
+    CreatedOnUtc           DATETIME2(3) NOT NULL CONSTRAINT DF_TblTrnTSKDashboardKpiSnapshot_CreatedOnUtc DEFAULT (SYSUTCDATETIME()),
+    CreatedByUserId        BIGINT NULL,
+    ModifiedOnUtc          DATETIME2(3) NULL,
+    ModifiedByUserId       BIGINT NULL,
+    RowVer                 ROWVERSION NOT NULL,
+    CONSTRAINT CK_TblTrnTSKDashboardKpiSnapshot_CompletionRatePercent CHECK (CompletionRatePercent >= 0 AND CompletionRatePercent <= 100),
+    CONSTRAINT FK_TblTrnTSKDashboardKpiSnapshot_Tenant FOREIGN KEY (TenantId) REFERENCES dbo.TblMstTSKTenant (TenantId)
+);
+GO
+CREATE UNIQUE INDEX UX_TblTrnTSKDashboardKpiSnapshot_UQ
+ON dbo.TblTrnTSKDashboardKpiSnapshot (TenantId, SnapshotDateUtc, PeriodTypeCode, TeamScopeCode)
+WHERE IsDeleted = 0;
+GO
+
+CREATE TABLE dbo.TblTrnTSKPortfolioKpiSnapshot (
+    PortfolioKpiSnapshotId BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    TenantId               BIGINT NOT NULL,
+    ProjectId              BIGINT NOT NULL,
+    SnapshotDateUtc        DATE NOT NULL,
+    HealthStatusCode       VARCHAR(20) NOT NULL, -- OnTrack/AtRisk/OffTrack
+    ProgressPercent        DECIMAL(5,2) NOT NULL CONSTRAINT DF_TblTrnTSKPortfolioKpiSnapshot_ProgressPercent DEFAULT (0),
+    TotalTasks             INT NOT NULL CONSTRAINT DF_TblTrnTSKPortfolioKpiSnapshot_TotalTasks DEFAULT (0),
+    ActiveTasks            INT NOT NULL CONSTRAINT DF_TblTrnTSKPortfolioKpiSnapshot_ActiveTasks DEFAULT (0),
+    DoneTasks              INT NOT NULL CONSTRAINT DF_TblTrnTSKPortfolioKpiSnapshot_DoneTasks DEFAULT (0),
+    OverdueTasks           INT NOT NULL CONSTRAINT DF_TblTrnTSKPortfolioKpiSnapshot_OverdueTasks DEFAULT (0),
+    RiskNoteEn             NVARCHAR(1000) NULL,
+    RiskNoteAr             NVARCHAR(1000) NULL,
+    IsActive               BIT NOT NULL CONSTRAINT DF_TblTrnTSKPortfolioKpiSnapshot_IsActive DEFAULT (1),
+    IsDeleted              BIT NOT NULL CONSTRAINT DF_TblTrnTSKPortfolioKpiSnapshot_IsDeleted DEFAULT (0),
+    CreatedOnUtc           DATETIME2(3) NOT NULL CONSTRAINT DF_TblTrnTSKPortfolioKpiSnapshot_CreatedOnUtc DEFAULT (SYSUTCDATETIME()),
+    CreatedByUserId        BIGINT NULL,
+    ModifiedOnUtc          DATETIME2(3) NULL,
+    ModifiedByUserId       BIGINT NULL,
+    RowVer                 ROWVERSION NOT NULL,
+    CONSTRAINT CK_TblTrnTSKPortfolioKpiSnapshot_ProgressPercent CHECK (ProgressPercent >= 0 AND ProgressPercent <= 100),
+    CONSTRAINT FK_TblTrnTSKPortfolioKpiSnapshot_Tenant FOREIGN KEY (TenantId) REFERENCES dbo.TblMstTSKTenant (TenantId),
+    CONSTRAINT FK_TblTrnTSKPortfolioKpiSnapshot_Project FOREIGN KEY (ProjectId) REFERENCES dbo.TblMstTSKProject (ProjectId)
+);
+GO
+CREATE UNIQUE INDEX UX_TblTrnTSKPortfolioKpiSnapshot_UQ
+ON dbo.TblTrnTSKPortfolioKpiSnapshot (TenantId, ProjectId, SnapshotDateUtc)
+WHERE IsDeleted = 0;
+GO
+
+CREATE TABLE dbo.TblTrnTSKMemberKpiSnapshot (
+    MemberKpiSnapshotId    BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    TenantId               BIGINT NOT NULL,
+    UserId                 BIGINT NOT NULL,
+    SnapshotDateUtc        DATE NOT NULL,
+    WorkloadPercent        DECIMAL(5,2) NOT NULL CONSTRAINT DF_TblTrnTSKMemberKpiSnapshot_WorkloadPercent DEFAULT (0),
+    AvailabilityStatusCode VARCHAR(20) NULL, -- Overloaded/High/Normal/Available/Low
+    AssignedTasks          INT NOT NULL CONSTRAINT DF_TblTrnTSKMemberKpiSnapshot_AssignedTasks DEFAULT (0),
+    CompletedTasks         INT NOT NULL CONSTRAINT DF_TblTrnTSKMemberKpiSnapshot_CompletedTasks DEFAULT (0),
+    OverdueTasks           INT NOT NULL CONSTRAINT DF_TblTrnTSKMemberKpiSnapshot_OverdueTasks DEFAULT (0),
+    AvgCompletionDays      DECIMAL(8,2) NULL,
+    BadgeCode              VARCHAR(30) NULL, -- TopPerformer/HighLoad
+    IsActive               BIT NOT NULL CONSTRAINT DF_TblTrnTSKMemberKpiSnapshot_IsActive DEFAULT (1),
+    IsDeleted              BIT NOT NULL CONSTRAINT DF_TblTrnTSKMemberKpiSnapshot_IsDeleted DEFAULT (0),
+    CreatedOnUtc           DATETIME2(3) NOT NULL CONSTRAINT DF_TblTrnTSKMemberKpiSnapshot_CreatedOnUtc DEFAULT (SYSUTCDATETIME()),
+    CreatedByUserId        BIGINT NULL,
+    ModifiedOnUtc          DATETIME2(3) NULL,
+    ModifiedByUserId       BIGINT NULL,
+    RowVer                 ROWVERSION NOT NULL,
+    CONSTRAINT CK_TblTrnTSKMemberKpiSnapshot_WorkloadPercent CHECK (WorkloadPercent >= 0 AND WorkloadPercent <= 100),
+    CONSTRAINT FK_TblTrnTSKMemberKpiSnapshot_Tenant FOREIGN KEY (TenantId) REFERENCES dbo.TblMstTSKTenant (TenantId),
+    CONSTRAINT FK_TblTrnTSKMemberKpiSnapshot_User FOREIGN KEY (UserId) REFERENCES dbo.TblMstTSKUser (UserId)
+);
+GO
+CREATE UNIQUE INDEX UX_TblTrnTSKMemberKpiSnapshot_UQ
+ON dbo.TblTrnTSKMemberKpiSnapshot (TenantId, UserId, SnapshotDateUtc)
 WHERE IsDeleted = 0;
 GO
 
