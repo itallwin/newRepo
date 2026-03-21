@@ -11,7 +11,7 @@ Examples:
 - Transaction: `TblTrnTSKTask`, `TblTrnTSKTaskComment`, `TblTrnTSKTaskAttachment`
 
 ## 2) ID naming and type
-- Key column naming: `<Entity>NameId` (e.g., `TaskId`, `UserId`, `ProjectId`)
+- Key column naming: `<Entity>NameId` (e.g., `TaskUno`, `UserUo`, `ProjectId`)
 - ID data type: `dbo.Uno` (alias of `UNIQUEIDENTIFIER`)
 - Primary IDs default: `NEWSEQUENTIALID()` for better clustered-index insert behavior
 
@@ -33,8 +33,8 @@ Examples:
 ## 6) Audit and lifecycle columns
 - Standard columns are kept consistent across tables:
   - `IsActive`, `IsDeleted`
-  - `CreatedOnUtc`, `CreatedByUserId`
-  - `ModifiedOnUtc`, `ModifiedByUserId`
+  - `EnteredOn`, `EnteredBy`
+  - `ModifiedOn`, `ModifiedBy`
   - `RowVer` (rowversion)
 
 ## 7) Status check

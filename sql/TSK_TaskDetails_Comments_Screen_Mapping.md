@@ -8,9 +8,9 @@ Based on the provided "Comments" tab screenshot in Task Details.
 - Source table: `dbo.TblTrnTSKTaskComment`
 - Mapped columns:
   - Comment text -> `CommentEn`, `CommentAr`
-  - Comment date/time -> `CreatedOnUtc`
+  - Comment date/time -> `EnteredOn`
   - Edited flag/time -> `IsEdited`, `EditedOnUtc`
-  - Author -> `CreatedByUserId` -> join `dbo.TblMstTSKUser`
+  - Author -> `EnteredBy` -> join `dbo.TblMstTSKUser`
     - display name from `FullNameEn/FullNameAr`
     - avatar initials derived in app layer from full name
 
@@ -22,12 +22,12 @@ Based on the provided "Comments" tab screenshot in Task Details.
 ### Autosave behavior ("Last saved automatically")
 - Draft table: `dbo.TblTrnTSKTaskCommentDraft`
   - `DraftEn`, `DraftAr`
-  - `LastAutoSavedOnUtc`
-  - one active draft per `(TenantId, TaskId, UserId)`
+  - `LastAutoSavedOn`
+  - one active draft per `(TenantUno, TaskUno, UserUo)`
 
 ### Mentions (for notifications/inbox)
 - Mention table: `dbo.TblTrnTSKTaskCommentMention`
-  - `TaskCommentId`, `MentionedUserId`, `IsRead`, `IsNotified`
+  - `TaskCommentId`, `MentionedUserUo`, `IsRead`, `IsNotified`
 
 ## DB constraints aligned to comments UX
 - `CK_TblTrnTSKTaskComment_TextRequired`:

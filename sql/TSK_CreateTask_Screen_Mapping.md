@@ -39,7 +39,7 @@ Based on the two provided "Create new task" screens.
 
 ## Related behavior supported by schema
 - Archive instead of delete:
-  - `TblTrnTSKTask.IsArchived`, `ArchivedOnUtc`, `ArchivedByUserId`, reason columns.
+  - `TblTrnTSKTask.IsArchived`, `ArchivedOnUtc`, `ArchivedByUserUo`, reason columns.
 - Reassign task:
   - `TblTrnTSKTaskReassignment` + latest assignments in `TblTrnTSKTaskAssignment`.
 - Activity feed updates:
