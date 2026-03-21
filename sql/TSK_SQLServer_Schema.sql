@@ -630,9 +630,14 @@ CREATE TABLE dbo.TblTrnTSKTaskComment (
     TaskCommentId         dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskComment_TaskCommentId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
     TenantId              dbo.Uno NOT NULL,
     TaskId                dbo.Uno NOT NULL,
+    ParentTaskCommentId   dbo.Uno NULL,
     CommentEn             NVARCHAR(MAX) NULL,
     CommentAr             NVARCHAR(MAX) NULL,
+    ClientMessageRef      VARCHAR(80) NULL,
     IsInternal            BIT NOT NULL CONSTRAINT DF_TblTrnTSKTaskComment_IsInternal DEFAULT (0),
+    IsEdited              BIT NOT NULL CONSTRAINT DF_TblTrnTSKTaskComment_IsEdited DEFAULT (0),
+    EditedOnUtc           DATETIME2(3) NULL,
+    EditedByUserId        dbo.Uno NULL,
     IsActive              BIT NOT NULL CONSTRAINT DF_TblTrnTSKTaskComment_IsActive DEFAULT (1),
     IsDeleted             BIT NOT NULL CONSTRAINT DF_TblTrnTSKTaskComment_IsDeleted DEFAULT (0),
     CreatedOnUtc          DATETIME2(3) NOT NULL CONSTRAINT DF_TblTrnTSKTaskComment_CreatedOnUtc DEFAULT (SYSUTCDATETIME()),
@@ -640,13 +645,88 @@ CREATE TABLE dbo.TblTrnTSKTaskComment (
     ModifiedOnUtc         DATETIME2(3) NULL,
     ModifiedByUserId      dbo.Uno NULL,
     RowVer                ROWVERSION NOT NULL,
+    CONSTRAINT CK_TblTrnTSKTaskComment_TextRequired CHECK (
+        LEN(LTRIM(RTRIM(ISNULL(CommentEn, N'')))) > 0
+        OR LEN(LTRIM(RTRIM(ISNULL(CommentAr, N'')))) > 0
+    ),
     CONSTRAINT FK_TblTrnTSKTaskComment_Tenant FOREIGN KEY (TenantId) REFERENCES dbo.TblMstTSKTenant (TenantId),
     CONSTRAINT FK_TblTrnTSKTaskComment_Task FOREIGN KEY (TaskId) REFERENCES dbo.TblTrnTSKTask (TaskId),
-    CONSTRAINT FK_TblTrnTSKTaskComment_CreatedBy FOREIGN KEY (CreatedByUserId) REFERENCES dbo.TblMstTSKUser (UserId)
+    CONSTRAINT FK_TblTrnTSKTaskComment_Parent FOREIGN KEY (ParentTaskCommentId) REFERENCES dbo.TblTrnTSKTaskComment (TaskCommentId),
+    CONSTRAINT FK_TblTrnTSKTaskComment_CreatedBy FOREIGN KEY (CreatedByUserId) REFERENCES dbo.TblMstTSKUser (UserId),
+    CONSTRAINT FK_TblTrnTSKTaskComment_EditedBy FOREIGN KEY (EditedByUserId) REFERENCES dbo.TblMstTSKUser (UserId)
 );
 GO
 CREATE INDEX IX_TblTrnTSKTaskComment_Task_CreatedOn
-ON dbo.TblTrnTSKTaskComment (TenantId, TaskId, CreatedOnUtc)
+ON dbo.TblTrnTSKTaskComment (TenantId, TaskId, CreatedOnUtc DESC)
+INCLUDE (CreatedByUserId, IsEdited, EditedOnUtc)
+WHERE IsDeleted = 0;
+GO
+CREATE INDEX IX_TblTrnTSKTaskComment_Parent_CreatedOn
+ON dbo.TblTrnTSKTaskComment (TenantId, ParentTaskCommentId, CreatedOnUtc DESC)
+WHERE IsDeleted = 0;
+GO
+CREATE UNIQUE INDEX UX_TblTrnTSKTaskComment_ClientMessageRef
+ON dbo.TblTrnTSKTaskComment (TenantId, TaskId, ClientMessageRef)
+WHERE IsDeleted = 0 AND ClientMessageRef IS NOT NULL;
+GO
+
+CREATE TABLE dbo.TblTrnTSKTaskCommentDraft (
+    TaskCommentDraftId    dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskCommentDraft_TaskCommentDraftId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    TenantId              dbo.Uno NOT NULL,
+    TaskId                dbo.Uno NOT NULL,
+    UserId                dbo.Uno NOT NULL,
+    DraftEn               NVARCHAR(MAX) NULL,
+    DraftAr               NVARCHAR(MAX) NULL,
+    LastAutoSavedOnUtc    DATETIME2(3) NOT NULL CONSTRAINT DF_TblTrnTSKTaskCommentDraft_LastAutoSavedOnUtc DEFAULT (SYSUTCDATETIME()),
+    IsActive              BIT NOT NULL CONSTRAINT DF_TblTrnTSKTaskCommentDraft_IsActive DEFAULT (1),
+    IsDeleted             BIT NOT NULL CONSTRAINT DF_TblTrnTSKTaskCommentDraft_IsDeleted DEFAULT (0),
+    CreatedOnUtc          DATETIME2(3) NOT NULL CONSTRAINT DF_TblTrnTSKTaskCommentDraft_CreatedOnUtc DEFAULT (SYSUTCDATETIME()),
+    CreatedByUserId       dbo.Uno NULL,
+    ModifiedOnUtc         DATETIME2(3) NULL,
+    ModifiedByUserId      dbo.Uno NULL,
+    RowVer                ROWVERSION NOT NULL,
+    CONSTRAINT FK_TblTrnTSKTaskCommentDraft_Tenant FOREIGN KEY (TenantId) REFERENCES dbo.TblMstTSKTenant (TenantId),
+    CONSTRAINT FK_TblTrnTSKTaskCommentDraft_Task FOREIGN KEY (TaskId) REFERENCES dbo.TblTrnTSKTask (TaskId),
+    CONSTRAINT FK_TblTrnTSKTaskCommentDraft_User FOREIGN KEY (UserId) REFERENCES dbo.TblMstTSKUser (UserId)
+);
+GO
+CREATE UNIQUE INDEX UX_TblTrnTSKTaskCommentDraft_UQ
+ON dbo.TblTrnTSKTaskCommentDraft (TenantId, TaskId, UserId)
+WHERE IsDeleted = 0;
+GO
+CREATE INDEX IX_TblTrnTSKTaskCommentDraft_User_LastAutoSaved
+ON dbo.TblTrnTSKTaskCommentDraft (TenantId, UserId, LastAutoSavedOnUtc DESC)
+WHERE IsDeleted = 0;
+GO
+
+CREATE TABLE dbo.TblTrnTSKTaskCommentMention (
+    TaskCommentMentionId  dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskCommentMention_TaskCommentMentionId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    TenantId              dbo.Uno NOT NULL,
+    TaskCommentId         dbo.Uno NOT NULL,
+    MentionedUserId       dbo.Uno NOT NULL,
+    MentionToken          VARCHAR(120) NULL,
+    IsNotified            BIT NOT NULL CONSTRAINT DF_TblTrnTSKTaskCommentMention_IsNotified DEFAULT (0),
+    NotifiedOnUtc         DATETIME2(3) NULL,
+    IsRead                BIT NOT NULL CONSTRAINT DF_TblTrnTSKTaskCommentMention_IsRead DEFAULT (0),
+    ReadOnUtc             DATETIME2(3) NULL,
+    IsActive              BIT NOT NULL CONSTRAINT DF_TblTrnTSKTaskCommentMention_IsActive DEFAULT (1),
+    IsDeleted             BIT NOT NULL CONSTRAINT DF_TblTrnTSKTaskCommentMention_IsDeleted DEFAULT (0),
+    CreatedOnUtc          DATETIME2(3) NOT NULL CONSTRAINT DF_TblTrnTSKTaskCommentMention_CreatedOnUtc DEFAULT (SYSUTCDATETIME()),
+    CreatedByUserId       dbo.Uno NULL,
+    ModifiedOnUtc         DATETIME2(3) NULL,
+    ModifiedByUserId      dbo.Uno NULL,
+    RowVer                ROWVERSION NOT NULL,
+    CONSTRAINT FK_TblTrnTSKTaskCommentMention_Tenant FOREIGN KEY (TenantId) REFERENCES dbo.TblMstTSKTenant (TenantId),
+    CONSTRAINT FK_TblTrnTSKTaskCommentMention_TaskComment FOREIGN KEY (TaskCommentId) REFERENCES dbo.TblTrnTSKTaskComment (TaskCommentId),
+    CONSTRAINT FK_TblTrnTSKTaskCommentMention_MentionedUser FOREIGN KEY (MentionedUserId) REFERENCES dbo.TblMstTSKUser (UserId)
+);
+GO
+CREATE UNIQUE INDEX UX_TblTrnTSKTaskCommentMention_UQ
+ON dbo.TblTrnTSKTaskCommentMention (TenantId, TaskCommentId, MentionedUserId)
+WHERE IsDeleted = 0;
+GO
+CREATE INDEX IX_TblTrnTSKTaskCommentMention_User_Inbox
+ON dbo.TblTrnTSKTaskCommentMention (TenantId, MentionedUserId, IsRead, CreatedOnUtc DESC)
 WHERE IsDeleted = 0;
 GO
 
