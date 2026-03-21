@@ -13,7 +13,11 @@ SET QUOTED_IDENTIFIER ON;
 GO
 
 IF TYPE_ID(N'dbo.Uno') IS NULL
-    EXEC('CREATE TYPE dbo.Uno FROM UNIQUEIDENTIFIER NULL;');
+    EXEC('CREATE TYPE dbo.Uno FROM BIGINT NULL;');
+GO
+
+IF OBJECT_ID(N'dbo.SeqTSKUno', N'SO') IS NULL
+    EXEC('CREATE SEQUENCE dbo.SeqTSKUno AS BIGINT START WITH 1 INCREMENT BY 1;');
 GO
 
 /* =========================================================
@@ -21,7 +25,7 @@ GO
    ========================================================= */
 
 CREATE TABLE dbo.TblMstTSKTenant (
-    TenantUno            dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKTenant_TenantUno DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    TenantUno            dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKTenant_TenantUno DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantCode          VARCHAR(30) NOT NULL,
     TenantNameEn        NVARCHAR(200) NOT NULL,
     TenantNameAr        NVARCHAR(200) NOT NULL,
@@ -44,7 +48,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblMstTSKCompany (
-    CompanyId           dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKCompany_CompanyId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    CompanyId           dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKCompany_CompanyId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno            dbo.Uno NOT NULL,
     CompanyCode         VARCHAR(30) NOT NULL,
     CompanyNameEn       NVARCHAR(200) NOT NULL,
@@ -69,7 +73,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblMstTSKBranch (
-    BranchId            dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKBranch_BranchId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    BranchId            dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKBranch_BranchId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno            dbo.Uno NOT NULL,
     CompanyId           dbo.Uno NOT NULL,
     BranchCode          VARCHAR(30) NOT NULL,
@@ -99,7 +103,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblMstTSKDepartment (
-    DepartmentId        dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKDepartment_DepartmentId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    DepartmentId        dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKDepartment_DepartmentId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno            dbo.Uno NOT NULL,
     CompanyId           dbo.Uno NOT NULL,
     BranchId            dbo.Uno NULL,
@@ -128,7 +132,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblMstTSKRole (
-    RoleId              dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKRole_RoleId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    RoleId              dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKRole_RoleId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno            dbo.Uno NOT NULL,
     RoleCode            VARCHAR(30) NOT NULL,
     RoleNameEn          NVARCHAR(150) NOT NULL,
@@ -154,7 +158,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblMstTSKUser (
-    UserUo                  dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKUser_UserUo DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    UserUo                  dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKUser_UserUo DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno                dbo.Uno NOT NULL,
     EmployeeNo              VARCHAR(30) NULL,
     LoginName               VARCHAR(120) NOT NULL,
@@ -197,7 +201,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblMstTSKTeam (
-    TeamId                dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKTeam_TeamId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    TeamId                dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKTeam_TeamId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno              dbo.Uno NOT NULL,
     TeamCode              VARCHAR(30) NOT NULL,
     TeamNameEn            NVARCHAR(150) NOT NULL,
@@ -222,7 +226,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblMstTSKTeamMember (
-    TeamMemberId          dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKTeamMember_TeamMemberId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    TeamMemberId          dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKTeamMember_TeamMemberId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno              dbo.Uno NOT NULL,
     TeamId                dbo.Uno NOT NULL,
     UserUo                dbo.Uno NOT NULL,
@@ -251,7 +255,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblMstTSKProject (
-    ProjectId            dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKProject_ProjectId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    ProjectId            dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKProject_ProjectId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno             dbo.Uno NOT NULL,
     ProjectCode          VARCHAR(30) NOT NULL,
     ProjectNameEn        NVARCHAR(250) NOT NULL,
@@ -290,7 +294,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblMstTSKTaskType (
-    TaskTypeId           dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKTaskType_TaskTypeId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    TaskTypeId           dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKTaskType_TaskTypeId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno             dbo.Uno NOT NULL,
     TaskTypeCode         VARCHAR(30) NOT NULL,
     TaskTypeNameEn       NVARCHAR(150) NOT NULL,
@@ -316,7 +320,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblMstTSKPriority (
-    PriorityId           dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKPriority_PriorityId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    PriorityId           dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKPriority_PriorityId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno             dbo.Uno NOT NULL,
     PriorityCode         VARCHAR(30) NOT NULL,
     PriorityNameEn       NVARCHAR(150) NOT NULL,
@@ -343,7 +347,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblMstTSKStatus (
-    StatusId             dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKStatus_StatusId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    StatusId             dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKStatus_StatusId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno             dbo.Uno NOT NULL,
     StatusCode           VARCHAR(30) NOT NULL,
     StatusNameEn         NVARCHAR(150) NOT NULL,
@@ -370,7 +374,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblMstTSKCategory (
-    CategoryId           dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKCategory_CategoryId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    CategoryId           dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKCategory_CategoryId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno             dbo.Uno NOT NULL,
     CategoryCode         VARCHAR(30) NOT NULL,
     CategoryNameEn       NVARCHAR(150) NOT NULL,
@@ -397,7 +401,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblMstTSKTag (
-    TagId                dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKTag_TagId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    TagId                dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKTag_TagId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno             dbo.Uno NOT NULL,
     TagCode              VARCHAR(40) NOT NULL,
     TagNameEn            NVARCHAR(100) NOT NULL,
@@ -421,7 +425,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblMstTSKScreen (
-    ScreenId             dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKScreen_ScreenId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    ScreenId             dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKScreen_ScreenId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno             dbo.Uno NOT NULL,
     ScreenCode           VARCHAR(40) NOT NULL,
     ScreenNameEn         NVARCHAR(150) NOT NULL,
@@ -445,7 +449,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblMstTSKRolePermission (
-    RolePermissionId      dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKRolePermission_RolePermissionId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    RolePermissionId      dbo.Uno  NOT NULL CONSTRAINT DF_TblMstTSKRolePermission_RolePermissionId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno              dbo.Uno NOT NULL,
     RoleId                dbo.Uno NOT NULL,
     ScreenId              dbo.Uno NOT NULL,
@@ -608,7 +612,7 @@ GO
    ========================================================= */
 
 CREATE TABLE dbo.TblTrnTSKTask (
-    TaskUno                dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTask_TaskUno DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    TaskUno                dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTask_TaskUno DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno              dbo.Uno NOT NULL,
     TaskNo                VARCHAR(40) NOT NULL,
     ProjectId             dbo.Uno NOT NULL,
@@ -688,7 +692,7 @@ WHERE IsDeleted = 0 AND IsArchived = 0;
 GO
 
 CREATE TABLE dbo.TblTrnTSKTaskAssignment (
-    TaskAssignmentId      dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskAssignment_TaskAssignmentId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    TaskAssignmentId      dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskAssignment_TaskAssignmentId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno              dbo.Uno NOT NULL,
     TaskUno                dbo.Uno NOT NULL,
     AssigneeUserUo        dbo.Uno NOT NULL,
@@ -724,7 +728,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblTrnTSKTaskSubtask (
-    TaskSubtaskId          dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskSubtask_TaskSubtaskId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    TaskSubtaskId          dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskSubtask_TaskSubtaskId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno               dbo.Uno NOT NULL,
     TaskUno                 dbo.Uno NOT NULL,
     SubtaskTitleEn         NVARCHAR(300) NOT NULL,
@@ -753,7 +757,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblTrnTSKTaskChecklist (
-    ChecklistId           dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskChecklist_ChecklistId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    ChecklistId           dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskChecklist_ChecklistId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno              dbo.Uno NOT NULL,
     TaskUno                dbo.Uno NOT NULL,
     ChecklistTitleEn      NVARCHAR(250) NOT NULL,
@@ -774,7 +778,7 @@ CREATE TABLE dbo.TblTrnTSKTaskChecklist (
 GO
 
 CREATE TABLE dbo.TblTrnTSKTaskChecklistItem (
-    ChecklistItemId       dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskChecklistItem_ChecklistItemId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    ChecklistItemId       dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskChecklistItem_ChecklistItemId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno              dbo.Uno NOT NULL,
     ChecklistId           dbo.Uno NOT NULL,
     ItemTextEn            NVARCHAR(300) NOT NULL,
@@ -800,7 +804,7 @@ CREATE TABLE dbo.TblTrnTSKTaskChecklistItem (
 GO
 
 CREATE TABLE dbo.TblTrnTSKTaskComment (
-    TaskCommentId         dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskComment_TaskCommentId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    TaskCommentId         dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskComment_TaskCommentId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno              dbo.Uno NOT NULL,
     TaskUno                dbo.Uno NOT NULL,
     ParentTaskCommentId   dbo.Uno NULL,
@@ -846,7 +850,7 @@ WHERE IsDeleted = 0 AND ClientMessageRef IS NOT NULL;
 GO
 
 CREATE TABLE dbo.TblTrnTSKTaskCommentDraft (
-    TaskCommentDraftId    dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskCommentDraft_TaskCommentDraftId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    TaskCommentDraftId    dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskCommentDraft_TaskCommentDraftId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno              dbo.Uno NOT NULL,
     TaskUno                dbo.Uno NOT NULL,
     UserUo                dbo.Uno NOT NULL,
@@ -877,7 +881,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblTrnTSKTaskCommentMention (
-    TaskCommentMentionId  dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskCommentMention_TaskCommentMentionId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    TaskCommentMentionId  dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskCommentMention_TaskCommentMentionId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno              dbo.Uno NOT NULL,
     TaskCommentId         dbo.Uno NOT NULL,
     MentionedUserUo       dbo.Uno NOT NULL,
@@ -910,7 +914,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblTrnTSKTaskAttachment (
-    TaskAttachmentId      dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskAttachment_TaskAttachmentId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    TaskAttachmentId      dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskAttachment_TaskAttachmentId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno              dbo.Uno NOT NULL,
     TaskUno                dbo.Uno NOT NULL,
     FileNameOriginal      NVARCHAR(255) NOT NULL,
@@ -945,7 +949,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblTrnTSKTaskTimeLog (
-    TaskTimeLogId         dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskTimeLog_TaskTimeLogId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    TaskTimeLogId         dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskTimeLog_TaskTimeLogId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno              dbo.Uno NOT NULL,
     TaskUno                dbo.Uno NOT NULL,
     UserUo                dbo.Uno NOT NULL,
@@ -978,7 +982,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblTrnTSKTaskStatusHistory (
-    TaskStatusHistoryId   dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskStatusHistory_TaskStatusHistoryId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    TaskStatusHistoryId   dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskStatusHistory_TaskStatusHistoryId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno              dbo.Uno NOT NULL,
     TaskUno                dbo.Uno NOT NULL,
     FromStatusId          dbo.Uno NULL,
@@ -1009,7 +1013,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblTrnTSKTaskHistory (
-    TaskHistoryId          dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskHistory_TaskHistoryId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    TaskHistoryId          dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskHistory_TaskHistoryId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno               dbo.Uno NOT NULL,
     TaskUno                 dbo.Uno NOT NULL,
     EventTypeCode          VARCHAR(40) NOT NULL, -- Created/Updated/Reassigned/Commented/AttachmentAdded/SubtaskUpdated/Archived
@@ -1043,7 +1047,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblTrnTSKTaskDependency (
-    TaskDependencyId      dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskDependency_TaskDependencyId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    TaskDependencyId      dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskDependency_TaskDependencyId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno              dbo.Uno NOT NULL,
     TaskUno                dbo.Uno NOT NULL,
     DependsOnTaskUno       dbo.Uno NOT NULL,
@@ -1070,7 +1074,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblTrnTSKTaskTagMap (
-    TaskTagMapId          dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskTagMap_TaskTagMapId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    TaskTagMapId          dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskTagMap_TaskTagMapId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno              dbo.Uno NOT NULL,
     TaskUno                dbo.Uno NOT NULL,
     TagId                 dbo.Uno NOT NULL,
@@ -1094,7 +1098,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblTrnTSKTaskWatcher (
-    TaskWatcherId         dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskWatcher_TaskWatcherId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    TaskWatcherId         dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskWatcher_TaskWatcherId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno              dbo.Uno NOT NULL,
     TaskUno                dbo.Uno NOT NULL,
     UserUo                dbo.Uno NOT NULL,
@@ -1120,7 +1124,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblTrnTSKTaskApproval (
-    TaskApprovalId        dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskApproval_TaskApprovalId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    TaskApprovalId        dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskApproval_TaskApprovalId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno              dbo.Uno NOT NULL,
     TaskUno                dbo.Uno NOT NULL,
     ApproverUserUo        dbo.Uno NOT NULL,
@@ -1148,7 +1152,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblTrnTSKNotification (
-    NotificationId        dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKNotification_NotificationId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    NotificationId        dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKNotification_NotificationId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno              dbo.Uno NOT NULL,
     UserUo                dbo.Uno NOT NULL,
     TaskUno                dbo.Uno NULL,
@@ -1179,7 +1183,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblTrnTSKProjectMember (
-    ProjectMemberId        dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKProjectMember_ProjectMemberId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    ProjectMemberId        dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKProjectMember_ProjectMemberId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno               dbo.Uno NOT NULL,
     ProjectId              dbo.Uno NOT NULL,
     UserUo                 dbo.Uno NOT NULL,
@@ -1210,7 +1214,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblTrnTSKTaskReassignment (
-    TaskReassignmentId     dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskReassignment_TaskReassignmentId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    TaskReassignmentId     dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKTaskReassignment_TaskReassignmentId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno               dbo.Uno NOT NULL,
     TaskUno                 dbo.Uno NOT NULL,
     FromAssigneeUserUo     dbo.Uno NULL,
@@ -1251,7 +1255,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblTrnTSKActivityFeed (
-    ActivityId             dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKActivityFeed_ActivityId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    ActivityId             dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKActivityFeed_ActivityId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno               dbo.Uno NOT NULL,
     ActivityTypeCode       VARCHAR(40) NOT NULL,
     EntityTypeCode         VARCHAR(40) NOT NULL,
@@ -1287,7 +1291,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblTrnTSKMemberPresenceLog (
-    PresenceLogId          dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKMemberPresenceLog_PresenceLogId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    PresenceLogId          dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKMemberPresenceLog_PresenceLogId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno               dbo.Uno NOT NULL,
     UserUo                 dbo.Uno NOT NULL,
     PresenceStatusCode     VARCHAR(15) NOT NULL, -- Online/Idle/Offline
@@ -1314,7 +1318,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblTrnTSKDashboardKpiSnapshot (
-    DashboardKpiSnapshotId dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKDashboardKpiSnapshot_DashboardKpiSnapshotId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    DashboardKpiSnapshotId dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKDashboardKpiSnapshot_DashboardKpiSnapshotId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno               dbo.Uno NOT NULL,
     SnapshotDateUtc        DATE NOT NULL,
     PeriodTypeCode         VARCHAR(20) NOT NULL, -- Last7Days/Last30Days/ThisQuarter
@@ -1348,7 +1352,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblTrnTSKPortfolioKpiSnapshot (
-    PortfolioKpiSnapshotId dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKPortfolioKpiSnapshot_PortfolioKpiSnapshotId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    PortfolioKpiSnapshotId dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKPortfolioKpiSnapshot_PortfolioKpiSnapshotId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno               dbo.Uno NOT NULL,
     ProjectId              dbo.Uno NOT NULL,
     SnapshotDateUtc        DATE NOT NULL,
@@ -1380,7 +1384,7 @@ WHERE IsDeleted = 0;
 GO
 
 CREATE TABLE dbo.TblTrnTSKMemberKpiSnapshot (
-    MemberKpiSnapshotId    dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKMemberKpiSnapshot_MemberKpiSnapshotId DEFAULT (NEWSEQUENTIALID()) PRIMARY KEY,
+    MemberKpiSnapshotId    dbo.Uno  NOT NULL CONSTRAINT DF_TblTrnTSKMemberKpiSnapshot_MemberKpiSnapshotId DEFAULT (NEXT VALUE FOR dbo.SeqTSKUno) PRIMARY KEY,
     TenantUno               dbo.Uno NOT NULL,
     UserUo                 dbo.Uno NOT NULL,
     SnapshotDateUtc        DATE NOT NULL,

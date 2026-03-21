@@ -12,8 +12,8 @@ Examples:
 
 ## 2) ID naming and type
 - Key column naming: `<Entity>NameId` (e.g., `TaskUno`, `UserUo`, `ProjectId`)
-- ID data type: `dbo.Uno` (alias of `UNIQUEIDENTIFIER`)
-- Primary IDs default: `NEWSEQUENTIALID()` for better clustered-index insert behavior
+- ID data type: `dbo.Uno` (alias of `BIGINT`)
+- Primary IDs default: `NEXT VALUE FOR dbo.SeqTSKUno` for better clustered-index insert behavior
 
 ## 3) Constraint naming
 - Default constraints: `DF_<TableName>_<ColumnName>`
