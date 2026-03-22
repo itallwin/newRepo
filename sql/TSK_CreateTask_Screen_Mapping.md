@@ -3,8 +3,8 @@
 Based on the two provided "Create new task" screens.
 
 ## ID standard
-- All key columns now use SQL Server alias type **`dbo.Uno`** (backed by `BIGINT`).
-- Primary IDs use `NEXT VALUE FOR dbo.SeqTSKUno` sequence defaults for scalable numeric key generation.
+- All primary key columns use **table-wise `BIGINT IDENTITY(1,1)`**.
+- Foreign key columns use `BIGINT` to match parent keys.
 
 ## Required fields
 - `Task name *` -> `dbo.TblTrnTSKTask.TaskTitleEn` (and optional `TaskTitleAr`)
